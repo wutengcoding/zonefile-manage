@@ -11,6 +11,7 @@ TEST_FIRST_BLOCK_HEIGHT = 250
 os.environ['ZONEFILEMANAGE_TEST_FIRST_BLOCK'] = str(TEST_FIRST_BLOCK_HEIGHT + 6)
 
 import sys
+import os
 
 TEST_RPC_PORT = 16264
 TEST_CLIENT_RPC_PORT = 16286
@@ -21,8 +22,14 @@ if os.environ.get("ZONEFILEMANAGE_STORAGE", None) is not None:
 
 BITCOIN_DIR = "/tmp/bitcoin-regtest"
 
+# Hack around the absolute path
+current_dir = os.path.abspath(os.path.dirname(__file__))
+parent_dir = os.path.abspath(current_dir + "/../")
 
-from ..config.virtualchain_config import DEBUG, get_logger
+sys.path.insert(0, parent_dir)
+
+
+from config import DEBUG, get_logger
 
 log = get_logger("ZONEFILEMANAGE")
 
