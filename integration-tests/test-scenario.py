@@ -30,7 +30,7 @@ sys.path.insert(0, parent_dir)
 
 
 from config import DEBUG, get_logger
-from blockchain.session import create_bitcoind_connection
+from blockchain.session import connect_bitcoind_impl
 log = get_logger("ZONEFILEMANAGE")
 
 DEFAULT_SERVER_INI_TEMPLATE = """
@@ -192,7 +192,7 @@ def bitcoind_regtest_reset():
     while True:
         time.sleep(1.0)
         opts = bitcoin_regtest_opts()
-        bitcoind = create_bitcoind_connection( opts )
+        bitcoind = connect_bitcoind_impl( opts )
         bitcoind.getinfo()
 
 
