@@ -147,7 +147,7 @@ def load_scenario( scenario_name ):
 
 def bitcoin_regtest_opts():
     return {
-        "bitcoind_server": "localhost",
+        "bitcoind_server": "127.0.0.1",
         "bitcoind_port": 18332,
         "bitcoind_p2p_port": 18444,
         "bitcoind_user": "wuteng",
@@ -176,6 +176,7 @@ def bitcoind_regtest_reset():
             while True:
                 rc = os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
                 if rc != 0:
+                    log.info("stop the bitcoind daemon")
                     break
         shutil.rmtree(bitcoin_dir)
 
