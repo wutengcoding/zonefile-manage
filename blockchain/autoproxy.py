@@ -58,16 +58,16 @@ class AuthServiceProxy(object):
             port = self.__url.port
         (user, passwd) = (self.__url.username, self.__url.password)
         try:
-            user.encode("utf-8")
+            user = user.encode("utf-8")
         except AttributeError:
             pass
         try:
-            passwd.encode("utf-8")
+            passwd = passwd.encode("utf-8")
         except AttributeError:
             pass
         authpair = user + b':' + passwd
         log.info("the auth pair is " + authpair)
-        self.__auth_header = b'Basic' + base64.b64encode(authpair)
+        self.__auth_header = b'Basic ' + base64.b64encode(authpair)
 
         self.__timeout = timeout
 
