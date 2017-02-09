@@ -30,7 +30,7 @@ sys.path.insert(0, parent_dir)
 
 
 from config import DEBUG, get_logger
-
+from blockchain.session import create_bitcoind_connection
 log = get_logger("ZONEFILEMANAGE")
 
 DEFAULT_SERVER_INI_TEMPLATE = """
@@ -181,7 +181,7 @@ def bitcoind_regtest_reset():
 
     os.makedirs(bitcoin_dir)
     with open(bitcoin_conf, "w") as f:
-        f.write("rpcuser=%s\nrpcpasswd=%s\nregtest=1\ntxindex=1\nlisten=1\nserver=1\ndatadir=%s\ndebug=1" % (opts['bitcoind_user'], opts('bitcoind_passwd'), bitcoin_dir))
+        f.write("rpcuser=%s\nrpcpasswd=%s\nregtest=1\ntxindex=1\nlisten=1\nserver=1\ndatadir=%s\ndebug=1" % (opts['bitcoind_user'], opts['bitcoind_passwd'], bitcoin_dir))
         # flush and fsync to force write
         f.flush()
         os.fsync(f.fileno())
@@ -192,6 +192,9 @@ def bitcoind_regtest_reset():
     while True:
         time.sleep(1.0)
         opts = bitcoin_regtest_opts()
+        bitcoind = create_bitcoind_connection( opts )
+        bitcoind.getinfo()
+
 
 
 

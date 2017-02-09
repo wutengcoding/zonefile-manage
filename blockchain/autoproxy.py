@@ -16,6 +16,9 @@ except ImportError:
 
 from config import get_logger
 HTTP_TIMEOUT = 30
+
+USER_AGENT = "AuthServiceProxy/0.1"
+
 log = get_logger("AutoProxy")
 
 class JSONRPCException(Exception):
@@ -102,7 +105,13 @@ class AuthServiceProxy(object):
 
         return response['result']
 
-
+    def __getattr__(self, name):
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError
+        # Recursive call this service name
+        if self.__service_name is not None:
+            name = "%s.%s" % (self.__service_name, name)
+        return AuthServiceProxy(self.__service_url, name, self.__timeout, self.__conn)
 
     def _get_response(self):
         http_response = self.__conn.getresponse()
