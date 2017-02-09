@@ -80,6 +80,9 @@ class AuthServiceProxy(object):
     def __call__(self, *args, **kwargs):
         AuthServiceProxy.__id_count += 1
 
+        log.debug("-%s-> %s %s" % (AuthServiceProxy.__id_count, self.__service_name,
+                                   json.dumps(args, default=EncodeDecimal)))
+
         postdata = json.dumps({'version': '1.1',
                                'method': self.__service_name,
                                'params': args,

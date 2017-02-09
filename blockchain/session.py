@@ -35,8 +35,8 @@ def create_bitcoind_connection( rpc_username, rpc_password, server, port, use_ht
     """
     Create an RPC instance to a bitcoind instance.
     """
-    protocal = 'https' if use_https else 'http'
-    autoproxy_config_uri = '%s://%s:%s@%s:%s' % (protocal, rpc_username, rpc_password, server, port)
+    protocol = 'https' if use_https else 'http'
+    autoproxy_config_uri = '%s://%s:%s@%s:%s' % (protocol, rpc_username, rpc_password, server, port)
 
     if use_https:
         pass

@@ -188,6 +188,10 @@ def bitcoind_regtest_reset():
 
     #start up
     log.debug("Starting up bitcoind in regtest mode")
+    rc = os.system("bitcoind -daemon -conf=%s" % bitcoin_conf)
+    if rc != 0:
+        log.error("Failed to start 'bitcoind': rc = %s" % rc)
+        return False
 
     while True:
         time.sleep(1.0)
