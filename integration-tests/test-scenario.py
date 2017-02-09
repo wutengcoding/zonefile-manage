@@ -243,10 +243,10 @@ if __name__ == '__main__':
 
     #load up the scenario
     scenario = load_scenario( scenario_module )
-    if scenario is None:
+    """if scenario is None:
         print "Failed to load '%s'" % sys.argv[1]
         sys.exit(1)
-
+    """
     #set up bitcoind
     bitcoind_regtest_reset()
 
