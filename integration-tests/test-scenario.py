@@ -118,7 +118,7 @@ def load_scenario( scenario_name ):
     log = get_logger("ZONEFILEMANAGE")
     log.debug("Load scenario %s " % sys.argv[1])
     # strip .py from scenario name
-    if scenario_name.endsWith(".py"):
+    if scenario_name.endswith(".py"):
         scenario_name = scenario_name[:-3]
 
     try:
