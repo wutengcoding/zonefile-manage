@@ -22,7 +22,7 @@ if os.environ.get("ZONEFILEMANAGE_STORAGE", None) is not None:
 BITCOIN_DIR = "/tmp/bitcoin-regtest"
 
 
-from config import DEBUG, get_logger
+from ..config import DEBUG, get_logger
 
 log = get_logger("ZONEFILEMANAGE")
 
