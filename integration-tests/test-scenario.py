@@ -181,7 +181,7 @@ def bitcoind_regtest_reset():
 
     os.makedirs(bitcoin_dir)
     with open(bitcoin_conf, "w") as f:
-        f.write("rpcuser=%s\nrpcpasswd=%s\nregtest=1\ntxindex=1\nlisten=1\nserver=1\ndatadir=%s\ndebug=1" % (opts['bitcoind_user'], opts('bitcoind_passwd'), bitcoin_dir))
+        f.write("rpcuser=%s\nrpcpasswd=%s\nregtest=1\ntxindex=1\nlisten=1\nserver=1\ndatadir=%s\ndebug=1" % (opts['bitcoind_user'], opts['bitcoind_passwd'], bitcoin_dir))
         # flush and fsync to force write
         f.flush()
         os.fsync(f.fileno())
@@ -240,10 +240,10 @@ if __name__ == '__main__':
 
     #load up the scenario
     scenario = load_scenario( scenario_module )
-    if scenario is None:
+    """if scenario is None:
         print "Failed to load '%s'" % sys.argv[1]
         sys.exit(1)
-
+    """
     #set up bitcoind
     bitcoind_regtest_reset()
 

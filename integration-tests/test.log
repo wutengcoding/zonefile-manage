@@ -1,1 +1,24 @@
 [2017-02-07 11:07:28,742] [INFO] [test-scenario:143] (3420.4508) hello
+[2017-02-09 18:40:48,860] [DEBUG] [test-scenario:119] (7001.139701347915584) Load scenario test 
+[2017-02-09 19:28:22,203] [DEBUG] [test-scenario:119] (7020.139810732209984) Load scenario scenarios.rpc_register 
+[2017-02-09 19:28:27,147] [DEBUG] [test-scenario:119] (7021.139933838104384) Load scenario scenarios.rpc_register.py 
+[2017-02-09 19:34:53,666] [DEBUG] [test-scenario:119] (7052.139834210944832) Load scenario integration-tests.scenarios.rpc_register.py 
+[2017-02-09 19:34:53,668] [WARNING] [test-scenario:131] (7052.139834210944832) Empty wallet for scenario 'integration-tests.scenarios.rpc_register'
+[2017-02-09 19:34:53,668] [WARNING] [test-scenario:135] (7052.139834210944832) No consensus hash for 'integration-tests.scenarios.rpc_register'
+[2017-02-09 19:34:53,670] [ERROR] [test-scenario:139] (7052.139834210944832) Invalid scenario 'integration-tests.scenarios.rpc_register': no 'scenario' method
+[2017-02-09 19:37:09,193] [DEBUG] [test-scenario:235] (7104.140313756976960) Remove /tmp/zonefilemanage-run-scenario.integration-tests.scenarios.rpc_register.py 
+[2017-02-09 19:37:09,194] [DEBUG] [test-scenario:119] (7104.140313756976960) Load scenario integration-tests.scenarios.rpc_register.py 
+[2017-02-09 19:37:09,194] [WARNING] [test-scenario:131] (7104.140313756976960) Empty wallet for scenario 'integration-tests.scenarios.rpc_register'
+[2017-02-09 19:37:09,194] [WARNING] [test-scenario:135] (7104.140313756976960) No consensus hash for 'integration-tests.scenarios.rpc_register'
+[2017-02-09 19:37:09,195] [ERROR] [test-scenario:139] (7104.140313756976960) Invalid scenario 'integration-tests.scenarios.rpc_register': no 'scenario' method
+[2017-02-09 19:59:08,025] [DEBUG] [test-scenario:235] (7129.139786074531648) Remove /tmp/zonefilemanage-run-scenario.integration-tests.scenarios.rpc_register.py 
+[2017-02-09 19:59:08,026] [DEBUG] [test-scenario:119] (7129.139786074531648) Load scenario integration-tests.scenarios.rpc_register.py 
+[2017-02-09 19:59:08,026] [WARNING] [test-scenario:131] (7129.139786074531648) Empty wallet for scenario 'integration-tests.scenarios.rpc_register'
+[2017-02-09 19:59:08,027] [WARNING] [test-scenario:135] (7129.139786074531648) No consensus hash for 'integration-tests.scenarios.rpc_register'
+[2017-02-09 19:59:08,027] [ERROR] [test-scenario:139] (7129.139786074531648) Invalid scenario 'integration-tests.scenarios.rpc_register': no 'scenario' method
+[2017-02-09 20:01:25,027] [DEBUG] [test-scenario:235] (7145.139910192822080) Remove /tmp/zonefilemanage-run-scenario.integration-tests.scenarios.rpc_register.py 
+[2017-02-09 20:01:25,028] [DEBUG] [test-scenario:119] (7145.139910192822080) Load scenario integration-tests.scenarios.rpc_register.py 
+[2017-02-09 20:01:25,028] [WARNING] [test-scenario:131] (7145.139910192822080) Empty wallet for scenario 'integration-tests.scenarios.rpc_register'
+[2017-02-09 20:01:25,029] [WARNING] [test-scenario:135] (7145.139910192822080) No consensus hash for 'integration-tests.scenarios.rpc_register'
+[2017-02-09 20:01:25,029] [ERROR] [test-scenario:139] (7145.139910192822080) Invalid scenario 'integration-tests.scenarios.rpc_register': no 'scenario' method
+[2017-02-09 20:01:25,033] [DEBUG] [test-scenario:190] (7145.139910192822080) Starting up bitcoind in regtest mode
