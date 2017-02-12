@@ -3,6 +3,7 @@ import logging
 import importlib
 import argparse
 import shutil
+import socket
 import time
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
 os.environ['ZONEFILEMAMAGE_TEST'] = '1'
@@ -16,6 +17,9 @@ import os
 TEST_RPC_PORT = 16264
 TEST_CLIENT_RPC_PORT = 16286
 ZONEFILEMANAGE_STORAGE_DRIVERS = "disk"
+
+TEST_FIRST_BLOCK_HEIGHT = 250   # how many blocks we have to generate to start regtest
+
 
 if os.environ.get("ZONEFILEMANAGE_STORAGE", None) is not None:
     ZONEFILEMANAGE_STORAGE_DRIVERS = os.environ.get("ZONEFILEMANAGE_STORAGE")
@@ -31,6 +35,10 @@ sys.path.insert(0, parent_dir)
 
 from config import DEBUG, get_logger
 from blockchain.session import connect_bitcoind_impl
+from blockchain.autoproxy import JSONRPCException
+import virtualchain
+import testlib
+
 log = get_logger("ZONEFILEMANAGE")
 
 DEFAULT_SERVER_INI_TEMPLATE = """
@@ -197,8 +205,22 @@ def bitcoind_regtest_reset():
     while True:
         time.sleep(1.0)
         opts = bitcoin_regtest_opts()
-        bitcoind = connect_bitcoind_impl( opts )
-        bitcoind.getinfo()
+        try:
+            bitcoind = connect_bitcoind_impl( opts )
+            print bitcoind.getinfo()
+        except socket.error:
+            pass
+        except JSONRPCException:
+            pass
+
+    #generate 150 blocks and confirm them
+    bitcoind = connect_bitcoind_impl( opts )
+    res = bitcoind.generate(TEST_FIRST_BLOCK_HEIGHT - 1)
+    if len(res) != TEST_FIRST_BLOCK_HEIGHT - 1:
+        log.error("Did not generate %s blocks" % TEST_FIRST_BLOCK_HEIGHT - 1)
+        return False
+    log.info("bitcoind -regtest is ready")
+    return True
 
 
 
@@ -254,5 +276,10 @@ if __name__ == '__main__':
     """
     #set up bitcoind
     bitcoind_regtest_reset()
+
+    #set up the default payment wallet
+    default_payment_wallet = testlib.MultisigWallet( 2, '5JYAj69z2GuFAZHrkhRuBKoCmKh6GcPXgcw9pbH8e8J2pu2RU9z', '5Kfg4xkZ1gGN5ozgDZ37Mn3EH9pXSuWZnQt1pzax4cLax8PetNs', '5JXB7rNxZa8yQtpuKtwy1nWUUTgdDEYTDmaEqQvKKC8HCWs64bL' )
+
+
 
 
