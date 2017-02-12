@@ -10,7 +10,7 @@ os.environ['ZONEFILEMAMAGE_TEST'] = '1'
 
 TEST_FIRST_BLOCK_HEIGHT = 250
 os.environ['ZONEFILEMANAGE_TEST_FIRST_BLOCK'] = str(TEST_FIRST_BLOCK_HEIGHT + 6)
-
+os.environ['ZONEFILEMANAGE_TESTNET'] = '1'
 import sys
 import os
 
