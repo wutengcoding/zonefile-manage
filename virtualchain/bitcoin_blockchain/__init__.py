@@ -1,3 +1,3 @@
-from .keys import BitcoinPrivateKey, BitcoinPublicKey
+from keys import BitcoinPrivateKey, BitcoinPublicKey
 
-from .multisig import *
+from multisig import *
