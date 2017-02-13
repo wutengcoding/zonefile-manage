@@ -8,6 +8,7 @@ import time
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
 os.environ['ZONEFILEMAMAGE_TEST'] = '1'
 
+# generate blocks to start our regtest
 TEST_FIRST_BLOCK_HEIGHT = 250
 os.environ['ZONEFILEMANAGE_TEST_FIRST_BLOCK'] = str(TEST_FIRST_BLOCK_HEIGHT + 6)
 os.environ['ZONEFILEMANAGE_TESTNET'] = '1'
@@ -38,6 +39,7 @@ from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
 import testlib
+from state_machine import nameset as state_engine
 
 log = get_logger("ZONEFILEMANAGE")
 
@@ -233,7 +235,7 @@ def bitcoion_regtest_fill_wallets( wallets, default_payment_wallet=None):
     for wallet in wallets:
         # fill each wallet
         fill_wallet(bitcoind, wallet, 50)
-    if default_payment_wallet is None:
+    if default_payment_wallet is not None:
         # fill optional default payment address
         fill_wallet(bitcoind, default_payment_wallet, 250)
 
@@ -304,6 +306,21 @@ def fill_wallet( bitcoind, wallet, value):
     return True
 
 
+def run_scenario( scenario, config_file, client_config_file, interactive = False, blocktime = 10 ):
+    """
+    * set up the virtualchain to use mock UTXO provider and mock bitcoin blockchain
+    * seed it with the intial value in the wallet
+    * set the intial consensus hash
+    * start the api server
+    * run the scenario method
+    * run the check method
+    """
+
+    virtualchain_working_dir = os.environ["VIRTUALCHAIN_WORKING_DIR"]
+
+    virtualchain.setup_virtualchain( state_engine )
+
+
 def parse_args( argv ):
     """
     Parse argv to get the block time, scenario, working dir, etc
@@ -347,6 +364,9 @@ if __name__ == '__main__':
     if not os.path.exists(working_dir):
         os.makedirs(working_dir)
 
+    # export to test
+    os.environ["VIRTUALCHAIN_WORKING_DIR"] = working_dir
+
     #load up the scenario
     scenario = load_scenario( scenario_module )
     """if scenario is None:
@@ -366,3 +386,4 @@ if __name__ == '__main__':
 
 
 
+    # run the test
