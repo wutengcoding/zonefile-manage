@@ -328,8 +328,8 @@ def sync_virtualchain_upcall(zonefilemanage_opts, need_db_refresh):
 
     old_lastblock = db.lastblock
 
-    log.debug("Sync virtualchain up to %s " (height))
-    virtualchain.sync_virtualchain()
+    log.debug("Sync virtualchain up to %s " % height)
+    virtualchain.sync_virtualchain(bitcoin_regtest_opts(), height, db)
 
 
 
