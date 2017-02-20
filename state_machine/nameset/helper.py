@@ -1,6 +1,7 @@
 from state_machine.operations.register import tx_extract as extract_register
-from state_machine.operations.update import *
-
+from state_machine.operations.update import tx_extract as extract_update
+from state_machine.operations.revoke import tx_extract as extract_revoke
+from state_machine.operations.transfer import tx_extract as extract_transfer
 NAMEREC_FIELDS = [
     'name',  # the name itself
     'value_hash',  # the hash of the name's associated profile
