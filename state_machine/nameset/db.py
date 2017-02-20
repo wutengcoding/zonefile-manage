@@ -18,7 +18,7 @@ CREATE TABLE name_records( name STRING NOT NULL,
                            consensus TEXT,
                            transfer_send_block_id INT,
                            --primary key includes block number, so an expired name can be re-registered
-                           PRIMARY KEY(name, block_number),
+                           PRIMARY KEY(name, block_number)
                            );
 
 """
