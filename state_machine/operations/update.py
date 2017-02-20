@@ -1,6 +1,9 @@
 from state_machine.nameset import *
 from state_machine.script import *
 from state_machine.b40 import *
+
+from config import *
+
 FIELDS = NUMEREC_FIELDS[:] + [
     'value_hash',
     'consensus_hash'
