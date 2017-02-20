@@ -164,7 +164,8 @@ def bitcoin_regtest_opts():
         "bitcoind_user": "wuteng",
         "bitcoind_passwd": "root",
         "bitcoind_use_https": False,
-        "bitcoind_timeout": 60
+        "bitcoind_timeout": 60,
+        "bitcoind_spv_header": os.path.join(os.environ.get("VIRTUALCHAIN_WORKING_DIR", None), "spv_header.dat")
     }
 
 
