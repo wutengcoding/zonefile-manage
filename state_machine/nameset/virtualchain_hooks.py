@@ -132,3 +132,10 @@ def check_mutate_fields( op, op_data ):
 
     assert len(missing) == 0, "Missing mutation fields for %s: %s" % (op, ",".join(missing))
     return True
+
+def get_first_block_id():
+    """
+    Get the id of the first block
+    """
+    start_block = FIRST_BLOCK_MAINNET
+    return start_block

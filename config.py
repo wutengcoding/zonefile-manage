@@ -7,10 +7,11 @@ if os.environ.get("ZONEFILEMANAGE_DEBUG") == "1":
 REINDEX_FREQUENCY = 300 # seconds
 if os.environ.get("ZONEFILEMANAGE_TEST") == "1":
     REINDEX_FREQUENCY = 1
+
 FIRST_BLOCK_MAINNET = 373601
 
 if os.environ.get("ZONEFILEMANAGE_TEST", None) is not None and os.environ.get("ZONEFILEMANAGE_TEST_FIRST_BLOCK", None) is not None:
-    FIRST_BLOCK_MAINNET = int(os.environ.get("BLOCKSTACK_TEST_FIRST_BLOCK"))
+    FIRST_BLOCK_MAINNET = int(os.environ.get("ZONEFILEMANAGE_TEST_FIRST_BLOCK"))
 
 
 GENESIS_SNAPSHOT = {

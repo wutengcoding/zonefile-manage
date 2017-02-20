@@ -218,7 +218,7 @@ def bitcoind_regtest_reset():
         except JSONRPCException:
             pass
 
-    #generate 150 blocks and confirm them
+    #generate 250 blocks and confirm them
     bitcoind = connect_bitcoind_impl( opts )
     res = bitcoind.generate(TEST_FIRST_BLOCK_HEIGHT - 1)
     if len(res) != TEST_FIRST_BLOCK_HEIGHT - 1:
