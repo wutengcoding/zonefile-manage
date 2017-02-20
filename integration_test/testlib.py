@@ -9,6 +9,8 @@ from config import get_logger
 
 log = get_logger("testlib")
 
+snapshots_dir = None
+
 class TestAPIProxy(object):
     def __init__(self):
         global utxo_opts
