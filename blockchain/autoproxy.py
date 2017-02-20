@@ -122,16 +122,13 @@ class AuthServiceProxy(object):
                 'code': -342, 'message': 'missing HTTP response from server'})
 
         content_type = http_response.getheader('Content-Type')
-        print content_type
-        content_type2 = http_response.getheader('Content-type')
-        print content_type2
         log.info("The http_response from rpc is " + str(http_response))
         if content_type != 'application/json':
             raise JSONRPCException({
                 'code': -342, 'message': 'non-JSON HTTP response with \'%i %s\' from server' % (http_response.status, http_response.reason)})
 
         reponsedata = http_response.read().decode("utf-8")
-        reponse = json.load(reponsedata, parse_float=decimal.Decimal)
+        reponse = json.loads(reponsedata, parse_float=decimal.Decimal)
 
         return reponse
 
