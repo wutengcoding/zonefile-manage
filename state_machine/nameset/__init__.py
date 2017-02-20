@@ -2,6 +2,8 @@ from virtualchain_hooks import *
 from indexer import *
 from namedb import *
 from db import *
+from helper import *
+
 
 NUMEREC_FIELDS = [
     'name',
