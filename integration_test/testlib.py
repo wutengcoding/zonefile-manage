@@ -1,4 +1,7 @@
 import os
+import tempfile
+
+import errno
 
 import virtualchain
 import keylib
@@ -64,3 +67,33 @@ def set_state_engine( s ):
     state_eigine = s
 
 
+
+def next_block( **kw ):
+    """
+    Advance the mock blockchain by one block
+    """
+    global snapshots_dir, state_engine
+
+    if snapshots_dir is None:
+        snapshots_dir = tempfile.mkdtemp(prefix='zonefilemanage-test-databases-')
+
+    del state_engine
+
+    # Flush all transactions and reset state engine
+    kw['next_block_upcall']()
+    kw['sync_virtualchain_upcall']()
+
+
+
+def zonefilemanage_export_db(path, block_height, **kwargs):
+
+    global state_engine
+
+    try:
+        state_engine.export_db(path + (".%s" % block_height))
+    except IOError, ie:
+        if ie.errno == errno.ENOENT:
+            log.error("No such file or directory: %s" + path)
+            pass
+        else:
+            raise

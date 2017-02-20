@@ -449,6 +449,9 @@ if __name__ == '__main__':
     if not os.path.exists(working_dir):
         os.makedirs(working_dir)
 
+
+    config_file = None
+
     # export to test
     os.environ["VIRTUALCHAIN_WORKING_DIR"] = working_dir
 
@@ -472,3 +475,4 @@ if __name__ == '__main__':
 
 
     # run the test
+    run_scenario(scenario, config_file, None, interactive=False, blocktime=blocktime)

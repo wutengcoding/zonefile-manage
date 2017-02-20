@@ -1,3 +1,5 @@
+import shutil
+
 import indexer
 from db import *
 from config import *
@@ -62,3 +64,17 @@ class ZonefileManageDB(indexer.StateEngine):
             opfields[opcode] = SERIALIZE_FIELDS[opname]
 
         return opfields
+
+
+    def export_db(self, path):
+        """
+        Copy the database to the given path
+        """
+        if self.db is not None:
+            self.db.commit()
+
+        shutil.copyfile(self.get_db_path(), path)
+
+
+    def get_db_path(self):
+        return self.db_filename
