@@ -4,7 +4,7 @@ from state_machine.b40 import *
 
 from config import *
 
-FIELDS = NUMEREC_FIELDS[:] + [
+FIELDS = NAMEREC_FIELDS[:] + [
     'value_hash',
     'consensus_hash'
 ]
