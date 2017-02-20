@@ -8,8 +8,7 @@ import time
 import traceback
 
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
-os.environ['ZONEFILEMAMAGE_TEST'] = '1'
-
+os.environ['ZONEFILEMANAGE_TEST'] = '1'
 # generate blocks to start our regtest
 TEST_FIRST_BLOCK_HEIGHT = 250
 os.environ['ZONEFILEMANAGE_TEST_FIRST_BLOCK'] = str(TEST_FIRST_BLOCK_HEIGHT + 6)
