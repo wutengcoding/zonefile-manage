@@ -11,6 +11,8 @@ log = get_logger("testlib")
 
 snapshots_dir = None
 
+state_engine = None
+
 class TestAPIProxy(object):
     def __init__(self):
         global utxo_opts
