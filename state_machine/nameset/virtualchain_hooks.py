@@ -1,8 +1,11 @@
 from config import get_logger
+from namedb import *
 import virtualchain
 import config
 import os
 import sys
+from state_machine.operations import *
+
 log = get_logger("virtualchain_hooks")
 
 DISPOSITION_RO = "readonly"
@@ -36,3 +39,96 @@ def get_db_state( disposition = DISPOSITION_RO ):
             os.abort()
 
     db_inst = ZonefileManageDB(db_filename, disposition)
+    return db_inst
+
+def db_parse(block_id, txid, vtxindex, op, data, senders, inputs, outputs, db_state=None):
+    """
+    Required by the state engine
+    """
+    # basic sanity check
+    if len(senders) == 0:
+        raise Exception("No sender given")
+
+    try:
+        opcode = op_get_opcode_name()
+        assert opcode is not None, "Unrecongnized opcode '%s'" % op
+    except Exception, e:
+        log.exception(e)
+        log.error("Skipping unreconginzed opcode")
+        return None
+
+    # Get the data
+    op = None
+    try:
+        op = op_extract( opcode, data, senders, inputs, outputs, block_id, vtxindex, txid )
+    except Exception, e:
+        log.exception(e)
+        op = None
+
+    if op is not None:
+        op['vtxindex'] = int(vtxindex)
+        op['txid'] = str(txid)
+
+    else:
+        log.error("Unparseable op '%s'" % opcode)
+
+    return op
+
+
+
+def db_check( block_id, new_ops, op, op_data, txid, vtxindex, checked_ops, db_state=None ):
+    """
+    Given a block id and a parsed operation, check to see if this is a valid operation
+    """
+    accept = True
+
+    if db_state is not None:
+
+        try:
+            assert 'txid' in op_data, "Missing txid from op"
+            assert 'vtxindex' in op_data, "Missing vtxindex from op"
+            opcode = op_get_opcode_name(op)
+            assert opcode is not None, "BUG: unknown op '%s'" % op
+        except Exception, e:
+            log.exception(e)
+            log.error("FATAL: invalid operation")
+            os.abort()
+
+        log.debug("CHECK %s at (%s, %s)" % (opcode, block_id, vtxindex))
+        rc = op_check(db_state, op_data, block_id, checked_ops)
+        if rc:
+
+            try:
+                opcode = op_data.get('opcode', None)
+                assert opcode is not None, "BUG: op_check did not set an opcode"
+            except Exception, e:
+                log.exception(e)
+                log.error("FATAL: no opcode set")
+                os.abort()
+
+            # verify that all mutate fields are present
+            rc = check_mutate_fields(opcode, op_data)
+            if not rc:
+                log.error("FATAL: bug in '%s' check() method did not return all mutate fields" % opcode)
+                os.abort()
+
+        else:
+            accept = False
+
+    return accept
+
+def check_mutate_fields( op, op_data ):
+    """
+    Verify that all mutate fields are present.
+    """
+
+    mutate_fields = op_get_mutate_fields( op )
+    assert mutate_fields is not None, "No mutate fields defined for %s" % op
+
+    missing = []
+    for field in mutate_fields:
+        if not op_data.has_key(field):
+            missing.append(field)
+
+    assert len(missing) == 0, "Missing mutation fields for %s: %s" % (op, ",".join(missing))
+    return True

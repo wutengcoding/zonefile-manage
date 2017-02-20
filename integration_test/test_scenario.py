@@ -5,6 +5,8 @@ import argparse
 import shutil
 import socket
 import time
+import traceback
+
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
 os.environ['ZONEFILEMAMAGE_TEST'] = '1'
 
@@ -34,7 +36,7 @@ parent_dir = os.path.abspath(current_dir + "/../")
 sys.path.insert(0, parent_dir)
 
 
-from config import DEBUG, get_logger
+from config import get_logger, get_working_dir
 from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
@@ -305,6 +307,45 @@ def fill_wallet( bitcoind, wallet, value):
         bitcoind.sendtoaddress(multisig_info['address'], value)
     return True
 
+def bitcoin_regtest_connect( opts, reset=False):
+    """
+    Create a connection to bitcoind -regtest
+    """
+    bitcoind = connect_bitcoind_impl( opts )
+    return bitcoind
+
+def sync_virtualchain_upcall(zonefilemanage_opts, need_db_refresh):
+    """
+    Upcall from the test scenario to synchronize virtualchain
+    """
+    bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
+    height = bitcoind.getblockcount()
+
+    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
+    testlib.set_state_engine(db)
+
+    if need_db_refresh:
+        pass
+
+    old_lastblock = db.lastblock
+
+    log.debug("Sync virtualchain up to %s " (height))
+    virtualchain.sync_virtualchain()
+
+
+
+
+def bitcoin_regtest_next_block():
+    """
+    Get the blockchain height from the regtest daemon
+    """
+
+    opts = bitcoin_regtest_opts()
+    bitcoind = bitcoin_regtest_connect(opts)
+    bitcoind.generate(1)
+    log.debug("Next block (now at %s)" % bitcoind.getblockcount())
+
+
 
 def run_scenario( scenario, config_file, client_config_file, interactive = False, blocktime = 10 ):
     """
@@ -318,7 +359,51 @@ def run_scenario( scenario, config_file, client_config_file, interactive = False
 
     virtualchain_working_dir = os.environ["VIRTUALCHAIN_WORKING_DIR"]
 
+    spv_header_path = os.path.join(virtualchain_working_dir, "spv_headers.dat")
     virtualchain.setup_virtualchain( state_engine )
+
+    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RO)
+
+    log.info("Connect to the bitcoind ")
+    bitcoind = bitcoin_regtest_connect( bitcoin_regtest_opts() )
+    working_dir = get_working_dir()
+
+    utxo_opts = {}
+
+    #set up the environment
+    testlib.set_utxo_opts(utxo_opts)
+    testlib.set_bitcoind(bitcoind)
+    testlib.set_state_engine(db)
+
+
+    test_env = {
+        "sync_virtualchain_upcall": lambda: sync_virtualchain_upcall(zonefilemanage_opts=None, need_db_refresh=False),
+        "next_block_upcall": bitcoin_regtest_next_block,
+        "working_dir": working_dir,
+        "bitcoind": bitcoind,
+        "bitcoind_opts": bitcoin_regtest_opts(),
+        "spv_header_path": spv_header_path
+    }
+
+
+    # Sync initial utxos
+    testlib.next_block( **test_env )
+
+    # Load the scenario into the mock blockchain and mock utxo provider
+    try:
+        rc = scenario.scenario(scenario.wallets, **test_env)
+    except Exception, e:
+        log.exception(e)
+        traceback.print_exc()
+
+    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
+    testlib.set_state_engine(db)
+
+    try:
+        scenario.check(db)
+    except Exception, e:
+        log.exception(e)
+        traceback.print_exc()
 
 
 def parse_args( argv ):

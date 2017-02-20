@@ -40,6 +40,13 @@ class ZonefileManageDB(indexer.StateEngine):
                                                 state=self,
                                                 expected_snapshots=expected_snapshots,
                                                 readonly=readonly)
+        backup_frequency = 1008  # once a week; 10 minute block time
+        backup_max_age = 12096  # 12 weeks
+        self.set_backup_frequency(backup_frequency)
+        self.set_backup_max_age(backup_max_age)
+
+        # collision detection
+        self.collisions = {}
 
 
 

@@ -43,12 +43,34 @@ NAME_OPCODES = {
     "NAME_REVOKE": NAME_REVOKE
 }
 
-OPCODES_NAME = {
+OPCODES_NAMES = {
     NAME_REGISTER: "NAME_REGISTER",
     NAME_UPDATE: "NAME_UPDATE",
     NAME_TRANSFER: "NAME_TRANSFER",
     NAME_REVOKE: "NAME_REVOKE"
 }
+
+BLOCK_BATCH_SIZE = 10
+
+
+# op-return formats
+LENGTHS = {
+    'magic_bytes': 2,
+    'opcode': 1,
+    'preorder_name_hash': 20,
+    'consensus_hash': 16,
+    'namelen': 1,
+    'name_min': 1,
+    'name_max': 34,
+    'fqn_min': 3,
+    'fqn_max': 37,
+    'name_hash': 16,
+    'name_consensus_hash': 16,
+    'value_hash': 20,
+    'announce': 20,
+    'max_op_length': 80
+}
+
 
 def get_logger(name="ZONEFILEMANAGE"):
     """
@@ -88,6 +110,21 @@ def get_logger(name="ZONEFILEMANAGE"):
 
 def get_virtualchain_name():
     return "zonefilemanage_server"
+
+
+
+def get_snapshots_filename(impl=None):
+    """
+    Get the absolute path to the chain's consensus snapshots file
+    """
+    impl = get_impl(impl)
+
+    working_dir = get_working_dir(impl)
+    snapshots_filename = get_virtualchain_name() + ".snapshots"
+
+    return os.path.join(working_dir, snapshots_filename)
+
+
 
 
 def get_db_filename( impl=None ):
@@ -158,3 +195,15 @@ def get_working_dir(impl = None):
     #     os.makedirs(working_dir)
     #
     # return working_dir
+
+
+def op_get_opcode_name(op_string):
+    """
+    Get the name of an opcode, given the operation's 'op' byte sequence
+    """
+
+    op = op_string[0]
+    if op not in OPCODES_NAMES.keys():
+        raise Exception("No such operation '%s'" % op)
+
+    return OPCODES_NAMES['op']
