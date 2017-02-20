@@ -4,6 +4,8 @@ from state_machine.b40 import *
 import virtualchain
 
 
+from config import *
+
 FIELDS = NAMEREC_FIELDS
 
 def get_registration_recipient_from_outputs( outputs ):
