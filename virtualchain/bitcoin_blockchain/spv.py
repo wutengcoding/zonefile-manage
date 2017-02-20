@@ -142,7 +142,7 @@ class SPVClient(object):
             if ":" in bitcoind_server:
                 p = bitcoind_server.split(":")
                 bitcoind_server = p[0]
-                bitcoind_port = p[1]
+                bitcoind_port = int(p[1])
 
             log.info("connect to %s: %s" % (bitcoind_server, bitcoind_port))
             sock.connect((bitcoind_server, bitcoind_port))
