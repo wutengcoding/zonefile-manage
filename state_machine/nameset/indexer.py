@@ -97,7 +97,7 @@ class StateEngine(object):
             log.debug("lastblock at %s" % lastblock_filename)
 
             try:
-                with open(lastblock_filename) as f:
+                with open(lastblock_filename, "w") as f:
                     f.write("%s" % self.lastblock)
                     f.flush()
             except Exception, e:
