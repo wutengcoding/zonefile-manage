@@ -49,7 +49,7 @@ class GetHeaders(SerializableMessage):
     """
     getheaders message
     """
-    commander = "getheaders"
+    command = "getheaders"
 
     def __init__(self):
         self.version = PROTOCOL_VERSION
