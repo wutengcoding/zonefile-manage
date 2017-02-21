@@ -144,6 +144,7 @@ class StateEngine(object):
         Goes and fetch all OP_RETURN nulldata in order, and feeds them into the state-engine using db_parse, db_check, db_commit and db_save
         """
         first_block_id = state_engine.lastblock + 1
+        log.info("from %s to %s " % (first_block_id, end_block_id))
         if first_block_id >= end_block_id:
             log.info("Up-to-date (%s -> %s)" % (first_block_id, end_block_id))
             return True
