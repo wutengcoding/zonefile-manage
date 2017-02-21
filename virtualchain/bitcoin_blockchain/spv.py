@@ -85,7 +85,7 @@ class BlockHashSerializer( Serializer ):
 
 class GetHeadersSerializer( Serializer ):
     model_class = GetHeaders
-    version = UInt32LEField
+    version = UInt32LEField()
     block_hashes = ListField(BlockHashSerializer)
     hash_stop = Hash()
 
