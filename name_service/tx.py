@@ -1,5 +1,6 @@
 from  state_machine.script import *
 from config import get_bitcoin_regtest_opts
+from pybitcoin import serialize_transaction, sign_all_unsigned_inputs, broadcast_transaction
 import virtualchain
 import os
 

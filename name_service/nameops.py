@@ -1,5 +1,5 @@
 import pybitcoin
-
+from tx import sign_and_broadcast_tx
 import virtualchain
 from config import get_logger
 
@@ -28,7 +28,16 @@ def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx
 
     resp = {}
 
-    sign_and_broadcast_tx()
+    try:
+        resp = sign_and_broadcast_tx(unsigned_tx, payment_privkey_info)
+    except Exception, e:
+        log.exception(e)
+        log.error("Failed to sign and broadcast tx")
+        return {'error': 'Failed to sign and broadcast namespace preorder transaction'}
+
+    return resp
+
+
 def do_name_update():
     pass
 
