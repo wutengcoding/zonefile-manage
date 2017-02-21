@@ -24,6 +24,11 @@ GENESIS_BLOCK_MERKLE_ROOT_MAINNET = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2
 GENESIS_BLOCK_HASH_TESTNET = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
 GENESIS_BLOCK_MERKLE_ROOT_TESTNET = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
 
+
+BLOCK_DIFFICULTY_CHUNK_SIZE = 2016
+BLOCK_DIFFICULTY_INTERVAL = 14*24*60*60  # two weeks, in seconds
+
+
 if VERSION_BYTE == 0:
     log.debug("Using mainnet")
     USE_MAINNET = True
@@ -158,6 +163,7 @@ class BlockHeaderClient( BitcoinBasicClient ):
         for i in xrange(header_start, len(block_headers)):
             prev_block_hash = self.hash_to_string(block_headers[i].prev_block)
             if i > 0 and prev_block_hash != block_headers[i-1].calculate_hash():
+                log.error("Block header sequence discontinous between %s and %s" % (i, i+1))
                 raise Exception("Block '%s' is not continuous with block %s  ", prev_block_hash, block_headers[i-1].calculate_hash())
 
         if current_height < 0:
@@ -344,6 +350,18 @@ class SPVClient(object):
             # get headers
             client.run()
 
+            # Verify headers
+            if SPVClient.height(path) < last_block_id:
+                raise Exception("Did not receive all headers up to %s (only get %s ) " % (last_block_id, SPVClient.height(path)))
+
+            rc = SPVClient.verify_header_chain(path)
+            if not rc:
+                raise Exception("Failed to verify headers (stored in '%s')" % path)
+
+
+        log.debug("synced headers from %s to %s in %s" % (current_block_id, last_block_id, path))
+        return True
+
 
     @classmethod
     def read_header_at(cls, f):
@@ -361,6 +379,105 @@ class SPVClient(object):
         h['nonce'] = hdr.nonce
         h['hash'] = hdr.calculate_hash()
         return h
+
+    @classmethod
+    def load_header_chain(cls, chain_path):
+        """
+        Load the header chain from disk
+        """
+        chain = []
+        height = 0
+
+        with open(chain_path, "rb") as f:
+            h = SPVClient.read_header_at(f)
+            h['block_height'] = height
+
+            height += 1
+            chain.append(h)
+
+        return chain
+
+    @classmethod
+    def get_target(cls, path, index, chain=None):
+        """
+        Calculate the target difficulty at a particular difficulty interval (index).
+        Return (bits, target) on success
+        """
+        if chain is None:
+            chain = []  # Do not use mutables as default values!
+
+        max_target = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
+        if index == 0:
+            return 0x1d00ffff, max_target
+
+        first = SPVClient.read_header(path, (index - 1) * BLOCK_DIFFICULTY_CHUNK_SIZE)
+        last = SPVClient.read_header(path, index * BLOCK_DIFFICULTY_CHUNK_SIZE - 1)
+        if last is None:
+            for h in chain:
+                if h.get('block_height') == index * BLOCK_DIFFICULTY_CHUNK_SIZE - 1:
+                    last = h
+
+        nActualTimespan = last.get('timestamp') - first.get('timestamp')
+        nTargetTimespan = BLOCK_DIFFICULTY_INTERVAL
+        nActualTimespan = max(nActualTimespan, nTargetTimespan / 4)
+        nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
+
+        bits = last.get('bits')
+        # convert to bignum
+        MM = 256 * 256 * 256
+        a = bits % MM
+        if a < 0x8000:
+            a *= 256
+        target = (a) * pow(2, 8 * (bits / MM - 3))
+
+        # new target
+        new_target = min(max_target, (target * nActualTimespan) / nTargetTimespan)
+
+        # convert it to bits
+        c = ("%064X" % new_target)[2:]
+        i = 31
+        while c[0:2] == "00":
+            c = c[2:]
+            i -= 1
+
+        c = int('0x' + c[0:6], 16)
+        if c >= 0x800000:
+            c /= 256
+            i += 1
+
+        new_bits = c + MM * i
+        return new_bits, new_target
+
+
+    @classmethod
+    def verify_header_chain(cls, path, chain=None):
+        if chain is None:
+            chain = SPVClient.load_header_chain(path)
+
+        prev_header = chain[0]
+
+        for i in xrange(1, len(chain)):
+            header = chain[i]
+            height = header.get('block_height')
+            prev_hash = prev_header.get('hash')
+            if prev_hash != header.get('prev_block_hash'):
+                log.error("Prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
+                return False
+
+            bits, target = SPVClient.get_target(path, height / BLOCK_DIFFICULTY_CHUNK_SIZE, chain)
+            if bits != header.get('bits'):
+                log.error("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+                return False
+
+            _hash = header.get('hash')
+            if int('0x' + _hash, 16) > target:
+                log.error("insufficient proof of work: %s vs target %s" % (int('0x' + _hash, 16), target))
+                return False
+
+            prev_header = header
+
+        return True
+
 
 
     @classmethod
