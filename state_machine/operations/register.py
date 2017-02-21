@@ -2,7 +2,9 @@ from state_machine.nameset import *
 from state_machine.script import *
 from state_machine.b40 import *
 import virtualchain
-
+from pybitcoin import embed_data_in_blockchain, serialize_transaction, \
+    serialize_sign_and_broadcast, make_op_return_script, \
+    make_pay_to_address_script, hex_hash160
 
 from config import *
 
@@ -107,3 +109,22 @@ def parse(bin_payload):
 
 
 
+
+def make_transaction(name, register_addr, consensus_hash, payment_addr, zonefilemanage_client):
+    script_pubkey = virtualchain.make_payment_script(payment_addr)
+    nulldata = build(name, script_pubkey, register_addr, consensus_hash)
+
+    # Get inputs and from address
+    inputs = tx_get_unspents(payment_addr, zonefilemanage_client)
+
+    # Build custom outputs
+    outputs = make_outputs(nulldata, inputs, payment_addr)
+
+    return (inputs, outputs)
+
+
+def make_outputs(data, inputs, payment_addr):
+    return [
+        {'script_hex': make_op_return_script(str(data), format='hex'),
+         'value': 0}
+    ]

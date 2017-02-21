@@ -1,6 +1,7 @@
 import pybitcoin
 import bitcoin
 import os
+import virtualchain
 
 #whether using testnet/regtest or mainnet
 if os.environ.get("ZONEFILEMANAGE_TESTNET", None) == "1":
@@ -45,3 +46,70 @@ def script_hex_address( script_hex ):
 
 
 
+
+def address_reencode( address ):
+    """
+    Depending on whether or not we're in testnet
+    or mainnet, re-encode an address accordingly.
+    """
+    vb = pybitcoin.b58check_version_byte( address )
+
+    if os.environ.get("ZONEFILEMANAGE_TESTNET") == "1":
+        if vb == 0 or vb == 111:
+            # convert to testnet p2pkh
+            vb = 111
+
+        elif vb == 5 or vb == 196:
+            # convert to testnet p2sh
+            vb = 196
+
+        else:
+            raise ValueError("unrecognized address %s" % address)
+
+    else:
+        if vb == 0 or vb == 111:
+            # convert to mainnet p2pkh
+            vb = 0
+
+        elif vb == 5 or vb == 196:
+            # convert to mainnet p2sh
+            vb = 5
+
+        else:
+            raise ValueError("unrecognized address %s" % address)
+
+    return pybitcoin.b58check_encode( pybitcoin.b58check_decode(address), vb )
+
+
+
+def make_payment_script( address ):
+    """
+    Make a pay-to-address script.
+    * If the address is a pubkey hash, then make a p2pkh script.
+    * If the address is a script hash, then make a p2sh script.
+    """
+    vb = pybitcoin.b58check_version_byte(address)
+
+    if vb == version_byte:
+        return pybitcoin.make_pay_to_address_script( address )
+
+    elif vb == multisig_version_byte:
+        return bitcoin.mk_scripthash_script( address )
+
+    else:
+        raise ValueError("Unrecognized address '%s'" % address )
+
+
+def is_singlesig( privkey_info ):
+    """
+    Does the given private key info represent
+    a single signature bundle? (i.e. one private key)?
+    """
+    if type(privkey_info) not in [str, unicode]:
+        return False
+
+    try:
+        virtualchain.BitcoinPrivateKey(privkey_info)
+        return True
+    except:
+        return False

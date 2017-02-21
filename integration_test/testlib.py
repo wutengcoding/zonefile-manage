@@ -4,14 +4,20 @@ import tempfile
 import errno
 
 import virtualchain
-import keylib
-from config import get_logger
+import pybitcoin
 
+
+from config import get_logger, get_bitcoin_regtest_opts
+import name_service
 log = get_logger("testlib")
 
 snapshots_dir = None
 
 state_engine = None
+
+
+
+
 
 class TestAPIProxy(object):
     def __init__(self):
@@ -101,3 +107,41 @@ def zonefilemanage_export_db(path, block_height, **kwargs):
             pass
         else:
             raise
+
+def zonefilemanage_name_register(name, register_addr, privatekey, consensus_hash = None, safety_checks = False):
+    """
+    Register a name
+    """
+    test_proxy = make_proxy()
+    name_service.set_default_proxy(test_proxy)
+
+    register_addr = virtualchain.address_reencode(register_addr)
+
+
+    resp = name_service.do_name_register(name,  privatekey, register_addr,
+                                                   test_proxy, test_proxy, consensus_hash=consensus_hash,
+                                                   config_path=test_proxy.config_path, proxy=test_proxy,
+                                                   safety_checks=safety_checks)
+    return resp
+
+def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None, safety_checks = False):
+    """
+    Update a name
+    """
+    test_proxy = make_proxy()
+    name_service.set_default_proxy(test_proxy)
+
+    resp = name_service.do_name_update(name, data_hash, privatekey)
+
+    return resp
+
+
+
+def get_utxo_client():
+    opts = get_bitcoin_regtest_opts()
+    utxo_provider = pybitcoin.BitcoindClient(opts.get("bitcoind_user", None), opts.get("bitcoind_passwd"), port=opts.get("bitcoind_port"), version_byte=virtualchain.version_byte)
+    return utxo_provider
+
+
+def make_proxy():
+    pass

@@ -35,7 +35,7 @@ parent_dir = os.path.abspath(current_dir + "/../")
 sys.path.insert(0, parent_dir)
 
 
-from config import get_logger, get_working_dir
+from config import get_logger, get_working_dir, set_bitcoin_regtest_opts
 from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
@@ -180,6 +180,7 @@ def bitcoind_regtest_reset():
     bitcoin_conf = os.path.join(bitcoin_dir, "bitcoin.conf")
 
     opts = bitcoin_regtest_opts()
+    set_bitcoin_regtest_opts(opts)
 
     if os.path.exists(bitcoin_dir):
         if os.path.exists(bitcoin_pidpath):

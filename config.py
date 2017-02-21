@@ -14,6 +14,13 @@ if os.environ.get("ZONEFILEMANAGE_TEST", None) is not None and os.environ.get("Z
     FIRST_BLOCK_MAINNET = int(os.environ.get("ZONEFILEMANAGE_TEST_FIRST_BLOCK"))
 
 
+TX_MIN_CONFIRMATIONS = 6
+if os.environ.get("ZONEFILEMANAGE_TEST", None) == "1":
+    # test environment
+    TX_MIN_CONFIRMATIONS = 0
+
+
+
 GENESIS_SNAPSHOT = {
     str(FIRST_BLOCK_MAINNET-4): "17ac43c1d8549c3181b200f1bf97eb7d",
     str(FIRST_BLOCK_MAINNET-3): "17ac43c1d8549c3181b200f1bf97eb7d",
@@ -54,6 +61,8 @@ OPCODES_NAMES = {
 BLOCK_BATCH_SIZE = 10
 
 
+
+bitcoin_regtest_opts = None
 
 NAMEREC_FIELDS = [
     'name',  # the name itself
@@ -228,3 +237,20 @@ def op_get_opcode_name(op_string):
         raise Exception("No such operation '%s'" % op)
 
     return OPCODES_NAMES['op']
+
+
+def set_bitcoin_regtest_opts(opts):
+    global bitcoin_regtest_opts
+    if bitcoin_regtest_opts is None:
+        bitcoin_regtest_opts = opts
+
+
+def get_bitcoin_regtest_opts():
+    return bitcoin_regtest_opts
+
+
+def get_tx_broadcaster():
+    return pybitcoin.BitcoindClient(utxo_opts['rpc_username'], utxo_opts['rpc_password'],
+                                    use_https=utxo_opts['use_https'], server=utxo_opts['server'],
+                                    port=utxo_opts['port'], version_byte=utxo_opts['version_byte'])
+

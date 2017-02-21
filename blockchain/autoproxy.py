@@ -66,7 +66,6 @@ class AuthServiceProxy(object):
         except AttributeError:
             pass
         authpair = user + b':' + passwd
-        log.info("the auth pair is " + authpair)
         self.__auth_header = b'Basic ' + base64.b64encode(authpair)
 
         self.__timeout = timeout
