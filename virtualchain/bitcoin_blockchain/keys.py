@@ -113,3 +113,36 @@ def is_singlesig( privkey_info ):
         return True
     except:
         return False
+
+def is_multisig( privkey_info ):
+    """
+    Does the given private key info represent
+    a multisig bundle?
+    """
+    if type(privkey_info) != dict:
+        return False
+
+    if 'private_keys' not in privkey_info.keys():
+        return False
+
+    if 'redeem_script' not in privkey_info.keys():
+        return False
+
+    return True
+
+
+def get_uncompressed_private_and_public_keys( privkey_str ):
+    """
+    Get the private and public keys from a private key string.
+    Make sure the both are *uncompressed*
+    """
+    pk = virtualchain.BitcoinPrivateKey(str(privkey_str))
+    pk_hex = pk.to_hex()
+
+    # force uncompressed
+    if len(pk_hex) > 64:
+        assert pk_hex[-2:] == '01'
+        pk_hex = pk_hex[:64]
+
+    pubk_hex = virtualchain.BitcoinPrivateKey(pk_hex).public_key().to_hex()
+    return pk_hex, pubk_hex
