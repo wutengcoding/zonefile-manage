@@ -110,7 +110,10 @@ class BlockchainDownloader( BitcoinBasicClient ):
             block_hashes.append(int(self.blocks[height], 16))
 
         start_block_height = sorted(self.blocks.keys())[0]
-        end_block_height = sorted(self.blocks.keys())[1]
+        if len(self.blocks.keys()) <= 1:
+            end_block_height = start_block_height
+        else:
+            end_block_height = sorted(self.blocks.keys())[1]
 
         log.debug("Send getdata for %s-%s (%064x-%064x)" % (start_block_height, end_block_height, block_hashes[0], block_hashes[-1]))
 
