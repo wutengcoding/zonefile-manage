@@ -1,5 +1,8 @@
 import os
 import logging
+
+import pybitcoin
+
 DEBUG = False
 if os.environ.get("ZONEFILEMANAGE_DEBUG") == "1":
     DEBUG = True
@@ -19,6 +22,8 @@ if os.environ.get("ZONEFILEMANAGE_TEST", None) == "1":
     # test environment
     TX_MIN_CONFIRMATIONS = 0
 
+
+running = False
 
 
 GENESIS_SNAPSHOT = {
@@ -250,7 +255,24 @@ def get_bitcoin_regtest_opts():
 
 
 def get_tx_broadcaster():
+    utxo_opts = get_bitcoin_regtest_opts()
     return pybitcoin.BitcoindClient(utxo_opts['rpc_username'], utxo_opts['rpc_password'],
                                     use_https=utxo_opts['use_https'], server=utxo_opts['server'],
                                     port=utxo_opts['port'], version_byte=utxo_opts['version_byte'])
 
+
+
+def set_running( status ):
+    """
+    Set running flag
+    """
+    global running
+    running = status
+
+
+def is_running():
+    """
+    Check running flag
+    """
+    global running
+    return running
