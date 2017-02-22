@@ -120,8 +120,7 @@ def zonefilemanage_name_register(name, register_addr, privatekey, consensus_hash
 
     resp = name_service.do_name_register(name,  privatekey, register_addr,
                                                    test_proxy, test_proxy, consensus_hash=consensus_hash,
-                                                   config_path=test_proxy.config_path, proxy=test_proxy,
-                                                   safety_checks=safety_checks)
+                                                   proxy=test_proxy, safety_checks=safety_checks)
     return resp
 
 def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None, safety_checks = False):
