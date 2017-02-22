@@ -8,7 +8,11 @@ import copy
 import binascii
 
 import pybitcoin
+import shutil
 import simplejson
+import sys
+
+import time
 from utilitybelt import is_hex
 
 import config
@@ -489,9 +493,209 @@ class StateEngine(object):
 
         return consensus_hash
 
+    def commit(self, backup=False, startup=False):
+        """
+        Move all written but uncommitted data into place.
+        Return True on success
+        Return False on error (in which case the caller should rollback())
 
+        It is safe to call this method repeatedly until it returns True.
+        """
 
+        if self.read_only:
+            log.error("FATAL: read-only")
+            os.abort()
 
+        tmp_db_filename = config.get_db_filename(impl=self.impl) + ".tmp"
+        tmp_snapshot_filename = config.get_snapshots_filename(impl=self.impl) + ".tmp"
+        tmp_lastblock_filename = config.get_lastblock_filename(impl=self.impl) + ".tmp"
+
+        if not os.path.exists(tmp_lastblock_filename) and (
+            os.path.exists(tmp_db_filename) or os.path.exists(tmp_snapshot_filename)):
+            # we did not successfully stage the write.
+            # rollback
+            log.error("Partial write detected.  Not committing.")
+            return False
+
+        # basic sanity checks: don't overwrite the db if the file is zero bytes, or if we can't load it
+        if os.path.exists(tmp_db_filename):
+            db_dir = os.path.dirname(tmp_db_filename)
+
+            try:
+                dirfd = os.open(db_dir, os.O_DIRECTORY)
+                os.fsync(dirfd)
+                os.close(dirfd)
+            except Exception, e:
+                log.exception(e)
+                log.error("FATAL: failed to sync directory %s" % db_dir)
+                traceback.print_stack()
+                os.abort()
+
+            sb = os.stat(tmp_db_filename)
+            if sb.st_size == 0:
+                log.error("Partial write detected: tried to overwrite with zero-sized db!  Will rollback.")
+                return False
+
+            if startup:
+                # make sure we can load this
+                try:
+                    with open(tmp_snapshot_filename, "r") as f:
+                        db_txt = f.read()
+
+                    db_json = json.loads(db_txt)
+                except:
+                    log.error("Partial write detected: corrupt partially-committed db!  Will rollback.")
+                    return False
+
+        backup_time = int(time.time() * 1000000)
+
+        listing = []
+        listing.append(("lastblock", tmp_lastblock_filename, config.get_lastblock_filename(impl=self.impl)))
+        listing.append(("snapshots", tmp_snapshot_filename, config.get_snapshots_filename(impl=self.impl)))
+        listing.append(("db", tmp_db_filename, config.get_db_filename(impl=self.impl)))
+
+        for i in xrange(0, len(listing)):
+            file_type, tmp_filename, filename = listing[i]
+
+            dir_path = os.path.dirname(tmp_filename)
+            dirfd = None
+            try:
+                dirfd = os.open(dir_path, os.O_DIRECTORY)
+                os.fsync(dirfd)
+            except Exception, e:
+                log.exception(e)
+                log.error("FATAL: failed to sync directory %s" % dir_path)
+                traceback.print_stack()
+                os.abort()
+
+            if not os.path.exists(tmp_filename):
+                # no new state written
+                os.close(dirfd)
+                continue
+
+                # commit our new lastblock, consensus hash set, and state engine data
+            try:
+
+                # NOTE: rename fails on Windows if the destination exists
+                if sys.platform == 'win32' and os.path.exists(filename):
+                    log.debug("Clear old '%s' %s" % (file_type, filename))
+                    os.unlink(filename)
+                    os.fsync(dirfd)
+
+                if not backup:
+                    log.debug("Rename '%s': %s --> %s" % (file_type, tmp_filename, filename))
+                    os.rename(tmp_filename, filename)
+                    os.fsync(dirfd)
+
+                else:
+                    log.debug("Rename and back up '%s': %s --> %s" % (file_type, tmp_filename, filename))
+                    shutil.copy(tmp_filename, tmp_filename + (".%s" % backup_time))
+                    os.rename(tmp_filename, filename)
+                    os.fsync(dirfd)
+
+            except Exception, e:
+                log.exception(e)
+                log.error("Failed to rename '%s' to '%s'" % (tmp_filename, filename))
+                os.close(dirfd)
+                return False
+
+            os.close(dirfd)
+
+        return True
+    def save(self, block_id, consensus_hash, pending_ops, backup=False):
+        """
+        Write out all state to the working directory.
+        Calls the implementation's 'db_save' method to store any state for this block.
+        Calls the implementation's 'db_continue' method at the very end, to signal
+        to the implementation that all virtualchain state has been saved.  This method
+        can return False, in which case, indexing stops
+
+        Return True on success
+        Return False if the implementation wants to exit.
+        Aborts on fatal error
+        """
+
+        if self.read_only:
+            log.error("FATAL: read only")
+            traceback.print_stack()
+            os.abort()
+
+        if block_id < self.lastblock:
+            log.error("FATAL: Already processed up to block %s (got %s)" % (self.lastblock, block_id))
+            traceback.print_stack()
+            os.abort()
+
+        # stage data to temporary files
+        tmp_db_filename = (config.get_db_filename(impl=self.impl) + ".tmp")
+        tmp_snapshot_filename = (config.get_snapshots_filename(impl=self.impl) + ".tmp")
+        tmp_lastblock_filename = (config.get_lastblock_filename(impl=self.impl) + ".tmp")
+
+        try:
+            with open(tmp_snapshot_filename, 'w') as f:
+                db_dict = {
+                    'snapshots': self.consensus_hashes
+                }
+                f.write(json.dumps(db_dict))
+                f.flush()
+
+            with open(tmp_lastblock_filename, "w") as lastblock_f:
+                lastblock_f.write("%s" % block_id)
+                lastblock_f.flush()
+
+        except Exception, e:
+            # failure to save is fatal
+            log.exception(e)
+            log.error("FATAL: Could not stage data for block %s" % block_id)
+            traceback.print_stack()
+            os.abort()
+
+        rc = self.impl.db_save(block_id, consensus_hash, pending_ops, tmp_db_filename, db_state=self.state)
+        if not rc:
+            # failed to save
+            # this is a fatal error
+            log.error("FATAL: Implementation failed to save at block %s to %s" % (block_id, tmp_db_filename))
+
+            try:
+                os.unlink(tmp_lastblock_filename)
+            except:
+                pass
+
+            try:
+                os.unlink(tmp_snapshot_filename)
+            except:
+                pass
+
+            traceback.print_stack()
+            os.abort()
+
+        rc = self.commit(backup=backup)
+        if not rc:
+            log.error("Failed to commit data at block %s.  Rolling back and aborting." % block_id)
+
+            self.rollback()
+            traceback.print_stack()
+            os.abort()
+
+        else:
+            self.lastblock = block_id
+
+            # make new backups
+            self.make_backups(block_id)
+
+            # clear out old backups
+            self.clear_old_backups(block_id)
+
+        continue_indexing = True
+        if hasattr(self.impl, "db_continue"):
+            try:
+                continue_indexing = self.impl.db_continue(block_id, consensus_hash)
+            except Exception, e:
+                log.exception(e)
+                traceback.print_stack()
+                log.error("FATAL: implementation failed db_continue")
+                os.abort()
+
+        return continue_indexing
 
     def process_block(self, block_id, ops, backup=False, expected_snapshots=None):
 
