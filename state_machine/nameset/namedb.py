@@ -33,7 +33,7 @@ class ZonefileManageDB(indexer.StateEngine):
         else:
             self.db = namedb_create( db_filename )
 
-        readonly = (disposition == DISPOSITION_RO)
+        read_only = (disposition == DISPOSITION_RO)
 
         super(ZonefileManageDB, self).__init__( MAGIC_BYTES,
                                                 OPCODES,
@@ -42,7 +42,7 @@ class ZonefileManageDB(indexer.StateEngine):
                                                 initial_snapshots=initial_snapshots,
                                                 state=self,
                                                 expected_snapshots=expected_snapshots,
-                                                readonly=readonly)
+                                                read_only=read_only)
         backup_frequency = 1008  # once a week; 10 minute block time
         backup_max_age = 12096  # 12 weeks
         self.set_backup_frequency(backup_frequency)
