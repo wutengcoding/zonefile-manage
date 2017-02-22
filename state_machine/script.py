@@ -78,7 +78,7 @@ def tx_get_unspents(address, utxo_client, min_confirmations=TX_MIN_CONFIRMATIONS
     Return array of UTXOs on success
     Raise UTXOException on error
     """
-    assert utxo_client is None, "Utxo client is null"
+    assert utxo_client is not None, "Utxo client is null"
     min_confirmations = 1
     if utxo_client is None:
         utxo_opts = get_bitcoin_regtest_opts()
