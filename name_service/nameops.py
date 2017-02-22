@@ -2,7 +2,7 @@ import pybitcoin
 from tx import sign_and_broadcast_tx
 import virtualchain
 from config import get_logger
-
+from state_machine.operations import *
 
 log = get_logger("nameops")
 
@@ -50,6 +50,6 @@ def do_name_transfer():
 
 
 def name_register_tx(*args, **kwargs):
-    inputs, outputs = name_register_tx(*args, **kwargs)
+    inputs, outputs = make_tx_name_register(*args, **kwargs)
     return pybitcoin.serialize_transaction(inputs, outputs)
 

@@ -9,6 +9,8 @@ import copy
 
 from config import *
 
+from register import make_transaction as make_tx_name_register
+
 
 log = get_logger("operations.__init__")
 
