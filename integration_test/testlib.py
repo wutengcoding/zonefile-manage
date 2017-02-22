@@ -138,9 +138,11 @@ def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None,
 
 def get_utxo_client():
     opts = get_bitcoin_regtest_opts()
-    utxo_provider = pybitcoin.BitcoindClient(opts.get("bitcoind_user", None), opts.get("bitcoind_passwd"), port=opts.get("bitcoind_port"), version_byte=virtualchain.version_byte)
+    utxo_provider = pybitcoin.BitcoindClient(opts.get("bitcoind_user", None), opts.get("bitcoind_passwd"), \
+                                             use_https=opts.get("bitcoind_use_https", None),server=opts.get("bitcoind_server", None),port=opts.get("bitcoind_port"), version_byte=virtualchain.version_byte)
     return utxo_provider
 
 
 def make_proxy():
-    pass
+    proxy = get_utxo_client()
+    return proxy

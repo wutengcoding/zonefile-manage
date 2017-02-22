@@ -129,8 +129,6 @@ def parse(bin_payload):
     }
 
 
-
-
 def make_transaction(name, register_addr, consensus_hash, payment_addr, zonefilemanage_client):
     script_pubkey = virtualchain.make_payment_script(payment_addr)
     nulldata = build(name)

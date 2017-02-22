@@ -78,13 +78,13 @@ def tx_get_unspents(address, utxo_client, min_confirmations=TX_MIN_CONFIRMATIONS
     Return array of UTXOs on success
     Raise UTXOException on error
     """
-
+    assert utxo_client is None, "Utxo client is null"
     min_confirmations = 1
     if utxo_client is None:
         utxo_opts = get_bitcoin_regtest_opts()
-        utxo_client =  pybitcoin.BitcoindClient(utxo_opts['rpc_username'], utxo_opts['rpc_password'],
-                                        use_https=utxo_opts['use_https'], server=utxo_opts['server'],
-                                        port=utxo_opts['port'], version_byte=utxo_opts['version_byte'])
+        utxo_client =  pybitcoin.BitcoindClient(utxo_opts['bitcoind_user'], utxo_opts['bitcoind_passwd'],
+                                        use_https=utxo_opts['bitcoind_use_https'], server=utxo_opts['bitcoind_server'],
+                                        port=utxo_opts['bitcoind_port'])
 
     data = pybitcoin.get_unspents(address, utxo_client)
 
