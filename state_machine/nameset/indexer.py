@@ -434,6 +434,28 @@ class StateEngine(object):
         log.debug("Snapshot('%s', %s)" % (record_root_hash, prev_consensus_hashes))
         return cls.make_snapshot_from_ops_hash(record_root_hash, prev_consensus_hashes)
 
+    @classmethod
+    def make_snapshot_from_ops_hash( cls, record_root_hash, prev_consensus_hashes ):
+        """
+        Generate the consensus hash from the hash over the current ops, and
+        all previous required consensus hashes.
+        """
+
+        # mix into previous consensus hashes...
+        all_hashes = prev_consensus_hashes[:] + [record_root_hash]
+        all_hashes.sort()
+        all_hashes_merkle_tree = pybitcoin.MerkleTree( all_hashes )
+        root_hash = all_hashes_merkle_tree.root()
+
+        consensus_hash = StateEngine.calculate_consensus_hash( root_hash )
+        return consensus_hash
+
+    @classmethod
+    def calculate_consensus_hash(self, merkle_root):
+        """
+        Given the Merkle root of the set of records processed, calculate the consensus hash.
+        """
+        return binascii.hexlify(pybitcoin.hash.bin_hash160(merkle_root, True)[0:16])
 
     def snapshot(self, block_id, oplist):
 
