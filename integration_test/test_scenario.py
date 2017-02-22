@@ -362,7 +362,7 @@ def bitcoin_regtest_next_block():
 
     opts = bitcoin_regtest_opts()
     bitcoind = bitcoin_regtest_connect(opts)
-    bitcoind.generate(2)
+    bitcoind.generate(1)
     log.debug("Next block (now at %s)" % bitcoind.getblockcount())
 
 

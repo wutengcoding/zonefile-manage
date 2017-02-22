@@ -194,7 +194,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
         nulldata_txs = []
         relindex = 0
 
-        for txindex in xrange(block.txns):
+        for txindex in xrange(0, len(block.txns)):
 
             txdata = self.parse_tx(block.txns[txindex], header, block_hash, txindex)
 
