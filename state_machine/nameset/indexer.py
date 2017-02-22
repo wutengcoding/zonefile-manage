@@ -6,6 +6,9 @@ from collections import defaultdict
 import copy
 
 import binascii
+
+import pybitcoin
+import simplejson
 from utilitybelt import is_hex
 
 import config
@@ -328,6 +331,107 @@ class StateEngine(object):
             self.impl.db_check()
 
 
+
+
+    @classmethod
+    def serialize_op(cls, opcode, opdata, opfields, verbose=True):
+        fields = opfields.get(opcode, None)
+        if fields is None:
+            log.error("Unrecognized opcode '%s'" % opcode)
+            return None
+
+        all_values = []
+        debug_all_values = []
+        missing = []
+
+        for field in fields:
+            if not opdata.has_key(field):
+                missing.append(field)
+
+            field_value = opdata.get(field, None)
+            if field_value is None:
+                field_value = ""
+
+            # netstring format
+            debug_all_values.append(str(field) + "=" + str(len(str(field_value))) + ":" + str(field_value))
+            all_values.append(str(len(str(field_value))) + ":" + str(field_value))
+
+        if len(missing) > 0:
+            log.error("Missing fields; dump follows:\n%s" % simplejson.dumps(opdata, indent=4, sort_keys=True))
+            raise Exception("BUG: missing fields '%s'" % (",".join(missing)))
+
+        if verbose:
+            log.debug("SERIALIZE: %s:%s" % (opcode, ",".join(debug_all_values)))
+
+        field_values = ",".join(all_values)
+
+        return opcode + ":" + field_values
+
+    @classmethod
+    def make_ops_snapshot(cls, serialized_ops):
+        """
+        Generate a deterministic hash over the sequence of (serialized) operations.
+        """
+        record_hashes = []
+        for serialized_op in serialized_ops:
+            record_hash = binascii.hexlify(pybitcoin.hash.bin_double_sha256(serialized_op))
+            record_hashes.append(record_hash)
+
+        if len(record_hashes) == 0:
+            record_hashes.append(binascii.hexlify(pybitcoin.hash.bin_double_sha256("")))
+
+        # put records into their own Merkle tree, and mix the root with the consensus hashes.
+        record_hashes.sort()
+        record_merkle_tree = pybitcoin.MerkleTree(record_hashes)
+        record_root_hash = record_merkle_tree.root()
+
+        return record_root_hash
+
+    @classmethod
+    def make_snapshot(cls, serialized_ops, prev_consensus_hashes):
+        """
+        Generate a consensus hash, using the tx-ordered list of serialized name
+        operations, and a list of previous consensus hashes that contains
+        the (k-1)th, (k-2)th; (k-3)th; ...; (k - (2**i - 1))th consensus hashes,
+        all the way back to the beginning of time (prev_consensus_hashes[i] is the
+        (k - (2**(i+1) - 1))th consensus hash)
+        """
+
+        record_root_hash = StateEngine.make_ops_snapshot(serialized_ops)
+        log.debug("Snapshot('%s', %s)" % (record_root_hash, prev_consensus_hashes))
+        return cls.make_snapshot_from_ops_hash(record_root_hash, prev_consensus_hashes)
+
+
+    def snapshot(self, block_id, oplist):
+
+        log.debug("Snapshotting block %s" % (block_id))
+
+        serialized_ops = []
+        for opdata in oplist:
+            serialized_record = StateEngine.serialize_op(opdata['virtualchain_opcode'], opdata, self.opfields)
+            serialized_ops.append(serialized_record)
+
+        previous_consensus_hashes = []
+        k = block_id
+        i = 1
+        while k - (2 ** i - 1) >= self.impl.get_first_block_id():
+            prev_block = k - (2 ** i - 1)
+            prev_ch = self.get_consensus_at(prev_block)
+            log.debug("Snapshotting block %s: consensus hash of %s is %s" % (block_id, prev_block, prev_ch))
+
+            if prev_ch is None:
+                log.error("BUG: None consensus for %s" % prev_block)
+                traceback.print_stack()
+                os.abort()
+
+            previous_consensus_hashes.append(prev_ch)
+            i += 1
+
+        consensus_hash = StateEngine.make_snapshot(serialized_ops, previous_consensus_hashes)
+
+        self.consensus_hashes[str(block_id)] = consensus_hash
+
+        return consensus_hash
 
 
 
