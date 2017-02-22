@@ -14,6 +14,7 @@ def set_default_proxy(proxy):
 def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx_broadcaster, consensus_hash=None, proxy=None, safety_check=None):
     fqu = str(name)
     payment_address = None
+    print utxo_client
     try:
         payment_address = virtualchain.BitcoinPrivateKey(payment_privkey_info).public_key().address()
     except Exception, e:
