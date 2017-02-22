@@ -164,21 +164,6 @@ def db_save(block_id, consensus_hash, pending_ops, filename, db_state=None):
             log.error("FATAL: failed to commit at block %s" % block_id)
             os.abort()
 
-        try:
-            # sync block data to atlas, if enabled
-            blockstack_opts = get_blockstack_opts()
-            if blockstack_opts.get('atlas', False):
-                log.debug("Synchronize Atlas DB for %s" % (block_id - 1))
-                zonefile_dir = blockstack_opts.get('zonefiles', get_zonefile_dir())
-
-                gc.collect()
-                atlasdb_sync_zonefiles(db_state, block_id - 1, zonefile_dir=zonefile_dir)
-                gc.collect()
-
-        except Exception, e:
-            log.exception(e)
-            log.error("FATAL: failed to update Atlas db at %s" % block_id)
-            os.abort()
 
         return True
 
