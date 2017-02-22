@@ -27,7 +27,7 @@ def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx
     resp = {}
 
     try:
-        resp = sign_and_broadcast_tx(unsigned_tx, payment_privkey_info)
+        resp = sign_and_broadcast_tx(unsigned_tx, payment_privkey_info, tx_broadcaster)
     except Exception, e:
         log.exception(e)
         log.error("Failed to sign and broadcast tx")
