@@ -195,5 +195,5 @@ class ZonefileManageDB(indexer.StateEngine):
         #     op in restored_recs]
         # ops_hash = virtualchain.StateEngine.make_ops_snapshot(serialized_ops)
 
-        ops_hash = "064x" % 1142423
+        ops_hash = "%064x" % 1142423
         return ops_hash
