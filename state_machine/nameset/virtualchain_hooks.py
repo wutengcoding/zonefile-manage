@@ -145,13 +145,11 @@ def db_save(block_id, consensus_hash, pending_ops, filename, db_state=None):
     Return False on failure.
     """
 
-    from ..atlas import atlasdb_sync_zonefiles
-
     if db_state is not None:
 
         try:
             # pre-calculate the ops hash for SNV
-            ops_hash = BlockstackDB.calculate_block_ops_hash(db_state, block_id)
+            ops_hash = ZonefileManageDB.calculate_block_ops_hash(db_state, block_id)
             db_state.store_block_ops_hash(block_id, ops_hash)
         except Exception, e:
             log.exception(e)

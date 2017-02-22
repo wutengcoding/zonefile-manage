@@ -165,3 +165,34 @@ class ZonefileManageDB(indexer.StateEngine):
         """
 
         self.db.commit()
+
+    @classmethod
+    def calculate_block_ops_hash(cls, db_state, block_id):
+        """
+        Get the hash of the sequence of operations that occurred in a particular block.
+        Return the hash on success.
+        """
+
+        from ..consensus import rec_restore_snv_consensus_fields
+
+        # calculate the ops hash and save that
+        prior_recs = db_state.get_all_ops_at(block_id, include_history=True)
+        if prior_recs is None:
+            prior_recs = []
+
+        restored_recs = []
+        for i in xrange(0, len(prior_recs)):
+            if (i + 1) % 10 == 0:
+                log.debug("Strategic garbage collect at block %s op %s" % (block_id, i))
+                gc.collect()
+
+            restored_rec = rec_restore_snv_consensus_fields(prior_recs[i], block_id)
+            restored_recs.append(restored_rec)
+
+        # NOTE: extracts only the operation-given fields, and ignores ancilliary record fields
+        serialized_ops = [
+            virtualchain.StateEngine.serialize_op(str(op['op'][0]), op, BlockstackDB.make_opfields(), verbose=True) for
+            op in restored_recs]
+        ops_hash = virtualchain.StateEngine.make_ops_snapshot(serialized_ops)
+
+        return ops_hash
