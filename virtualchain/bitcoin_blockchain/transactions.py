@@ -9,7 +9,7 @@ from virtualchain.bitcoin_blockchain.blocks import BlockchainDownloader
 
 log = get_logger("transactions")
 
-def get_virtual_transactions( blockchain_opts, first_block_height, last_block_height, spv_last_block, first_block_hash=None, tx_filter=None):
+def get_virtual_transactions( blockchain_opts, first_block_height, last_block_height, spv_last_block=None, first_block_hash=None, tx_filter=None):
     """
     Get the sequence of virtualchain transactions from the blockchain
     Each transaction will be a 'nulldata' transaction
