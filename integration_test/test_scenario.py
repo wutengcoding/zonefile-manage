@@ -418,8 +418,6 @@ def parse_args( argv ):
     return args
 
 if __name__ == '__main__':
-    print __file__
-    print sys.argv
     if len(sys.argv) < 2:
         print >> sys.stderr, "Usage: [scenario_module]"
         sys.exit(1)
