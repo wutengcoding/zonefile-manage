@@ -243,7 +243,7 @@ def tx_sign_multisig(tx, idx, redeem_script, private_keys, hashcode=bitcoin.SIGH
     assert len(used_keys) == m, 'Missing private keys'
     return bitcoin.apply_multisignatures(tx, idx, str(redeem_script), sigs)
 
-def blockstack_script_to_hex(script):
+def zonefilemanage_script_to_hex(script):
     """ Parse the readable version of a script, return the hex version.
     """
     hex_script = ''

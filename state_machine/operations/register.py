@@ -24,8 +24,8 @@ def build(name):
 
     """
 
-    readable_script = "NAME_REGISTRATION 0x%s" % (hexlify(name))
-    hex_script = blockstack_script_to_hex(readable_script)
+    readable_script = "NAME_REGISTER 0x%s" % (hexlify(name))
+    hex_script = zonefilemanage_script_to_hex(readable_script)
     packaged_script = add_magic_bytes(hex_script)
 
     return packaged_script
