@@ -143,14 +143,6 @@ class BlockchainDownloader( BitcoinBasicClient ):
         self.send_message(pong)
 
 
-    def handle_block(self, message_header, block_message):
-        """
-        Handle the block message
-        """
-        log.debug("Handle block message calculate_hash is %s" % block_message.calculate_hash())
-        self.loop_exit()
-
-
     def handle_inv(self, message_header, inv_packet):
 
         log.debug("Handle inv of %s item(s)" % len(inv_packet.inventory))
@@ -176,6 +168,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
 
 
     def handle_block(self, message_header, block):
+        log.info("handle block message")
         if self.have_all_block_data():
             self.loop_exit()
             return

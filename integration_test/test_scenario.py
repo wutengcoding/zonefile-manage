@@ -183,14 +183,14 @@ def bitcoind_regtest_reset():
     set_bitcoin_regtest_opts(opts)
 
     if os.path.exists(bitcoin_dir):
-        if os.path.exists(bitcoin_pidpath):
+        # if os.path.exists(bitcoin_pidpath):
             # kill running daemon
-            os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
-            while True:
-                rc = os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
-                if rc != 0:
-                    log.info("stop the bitcoind daemon")
-                    break
+        os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
+        while True:
+            rc = os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
+            if rc != 0:
+                log.info("stop the bitcoind daemon")
+                break
         shutil.rmtree(bitcoin_dir)
 
     os.makedirs(bitcoin_dir)
@@ -343,7 +343,7 @@ def bitcoin_regtest_next_block():
 
     opts = bitcoin_regtest_opts()
     bitcoind = bitcoin_regtest_connect(opts)
-    bitcoind.generate(1)
+    bitcoind.generate(2)
     log.debug("Next block (now at %s)" % bitcoind.getblockcount())
 
 
