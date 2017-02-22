@@ -146,3 +146,18 @@ def get_uncompressed_private_and_public_keys( privkey_str ):
 
     pubk_hex = virtualchain.BitcoinPrivateKey(pk_hex).public_key().to_hex()
     return pk_hex, pubk_hex
+
+def script_hex_to_address( script_hex ):
+    """
+    Examine a scriptPubkey and extract an address.
+    """
+    if script_hex.startswith("76a914") and script_hex.endswith("88ac") and len(script_hex) == 50:
+        # p2pkh script
+        return pybitcoin.script_hex_to_address( script_hex, version_byte=version_byte )
+
+    elif script_hex.startswith("a914") and script_hex.endswith("87") and len(script_hex) == 46:
+        # p2sh script
+        return bitcoin.script_to_address( script_hex, vbyte=multisig_version_byte )
+
+    else:
+        raise ValueError("Nonstandard script %s" % script_hex)

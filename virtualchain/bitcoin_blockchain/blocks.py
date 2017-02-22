@@ -4,14 +4,14 @@ import bitcoin
 import pybitcoin
 import requests
 import simplejson
-
+from decimal import *
 from config import get_logger
 import protocoin
 from protocoin.clients import *
 from protocoin.exceptions import *
 from protocoin.serializers import *
 from protocoin.fields import *
-
+import bits
 from keys import version_byte as VERSION_BYTE
 from virtualchain.bitcoin_blockchain.spv import SPVClient
 
@@ -420,6 +420,33 @@ class BlockchainDownloader( BitcoinBasicClient ):
 
         return txdata
 
+    def parse_tx_output(self, i, outp):
+        """
+        Given a tx output, turn it into an easy-to-read
+        dict (i.e. like what bitcoind would give us).
+        """
+        scriptpubkey = binascii.hexlify(outp.pk_script)
+        script_info = bits.tx_output_parse_scriptPubKey(scriptpubkey)
+        return {
+            "value": Decimal(outp.value) / Decimal(10 ** 8),
+            "n": i,
+            "scriptPubKey": script_info
+        }
+
+
+
+    def parse_tx_input(self, inp):
+        scriptSig = binascii.hexlify(inp.signature_script)
+        prev_txid = "%064x" % inp.previous_output.out_hash
+
+        ret = {
+            "vout": inp.previous_output.index,
+            "txid": prev_txid,
+            "scriptSig": {
+                "hex": scriptSig,
+                "asm": bits.tx_script_to_asm(scriptSig)
+            }
+        }
 
     def fetch_sender_txs(self):
         """
