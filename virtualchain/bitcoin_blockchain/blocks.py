@@ -223,7 +223,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
         self.block_info[block_hash]['num_senders'] = 0
 
         sender_txhashes = []
-
+        log.info("Whether can add 1 to blocks received")
         for txn in self.block_info[block_hash]['txns']:
             for i in xrange(0, len(txn['vin'])):
                 inp = txn['vin'][i]
