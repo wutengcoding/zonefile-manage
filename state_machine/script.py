@@ -80,6 +80,12 @@ def tx_get_unspents(address, utxo_client, min_confirmations=TX_MIN_CONFIRMATIONS
     """
 
     min_confirmations = 1
+    if utxo_client is None:
+        utxo_opts = get_bitcoin_regtest_opts()
+        utxo_client =  pybitcoin.BitcoindClient(utxo_opts['rpc_username'], utxo_opts['rpc_password'],
+                                        use_https=utxo_opts['use_https'], server=utxo_opts['server'],
+                                        port=utxo_opts['port'], version_byte=utxo_opts['version_byte'])
+
     data = pybitcoin.get_unspents(address, utxo_client)
 
     try:
