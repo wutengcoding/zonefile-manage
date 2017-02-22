@@ -140,7 +140,7 @@ class StateEngine(object):
     @classmethod
     def build(cls, bitcoind_opts, end_block_id, state_engine, expected_snapshots={}, tx_filter=None):
         """
-        Top-level call to process all blocks in the zonefilemanage, left inclusive and right exclusive
+        Top-level call to process all blocks in the zonefilemanage
         Goes and fetch all OP_RETURN nulldata in order, and feeds them into the state-engine using db_parse, db_check, db_commit and db_save
         """
         first_block_id = state_engine.lastblock + 1
@@ -159,7 +159,7 @@ class StateEngine(object):
                 break
 
             last_block_id = min(block_id + batch_size, end_block_id)
-            block_ids_and_txs = transactions.get_virtual_transactions(bitcoind_opts, first_block_id, last_block_id, spv_last_block=end, )
+            block_ids_and_txs = transactions.get_virtual_transactions(bitcoind_opts, first_block_id, last_block_id )
             if block_ids_and_txs is None:
                 raise Exception("Failed to get virtual transactions %s to %s" % (block_id, block_id + last_block_id))
 
