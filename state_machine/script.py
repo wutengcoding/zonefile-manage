@@ -1,11 +1,11 @@
 import traceback
-from config import get_logger, TX_MIN_CONFIRMATIONS
+from config import *
 from state_machine.b40 import *
 from virtualchain import *
 import pybitcoin
 import bitcoin
 import ecdsa
-
+from utilitybelt import is_hex, is_valid_int
 log = get_logger("script")
 
 
@@ -242,3 +242,33 @@ def tx_sign_multisig(tx, idx, redeem_script, private_keys, hashcode=bitcoin.SIGH
 
     assert len(used_keys) == m, 'Missing private keys'
     return bitcoin.apply_multisignatures(tx, idx, str(redeem_script), sigs)
+
+def blockstack_script_to_hex(script):
+    """ Parse the readable version of a script, return the hex version.
+    """
+    hex_script = ''
+    parts = script.split(' ')
+    for part in parts:
+        if part in NAME_OPCODES:
+            try:
+                hex_script += '{:02x}'.format(ord(NAME_OPCODES[part]))
+            except:
+                raise Exception('Invalid opcode: {}'.format(part))
+        elif part.startswith('0x'):
+            # literal hex string
+            hex_script += part[2:]
+        elif is_valid_int(part):
+            hex_part = '{:02x}'.format(int(part))
+            if len(hex_part) % 2 != 0:
+                hex_part = '0' + hex_part
+            hex_script += hex_part
+        elif is_hex(part) and len(part) % 2 == 0:
+            hex_script += part
+        else:
+            raise ValueError(
+                'Invalid script (at {}), contains invalid characters: {}'.format(part, script))
+
+    if len(hex_script) % 2 != 0:
+        raise ValueError('Invalid script: must have an even number of chars (got {}).'.format(hex_script))
+
+    return hex_script

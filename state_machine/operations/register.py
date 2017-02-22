@@ -10,6 +10,30 @@ from config import *
 
 FIELDS = NAMEREC_FIELDS
 
+
+def build(name):
+    """
+    Takes in the name that was preordered, including the namespace ID (but not the id: scheme)
+    Returns a hex string representing up to the maximum-length name's bytes.
+
+    Record format:
+
+    0    2  3                             39
+    |----|--|-----------------------------|
+    magic op   name.ns_id (37 bytes)
+
+    """
+
+    if not is_name_valid(name):
+        raise Exception("Invalid name '%s'" % name)
+
+    readable_script = "NAME_REGISTRATION 0x%s" % (hexlify(name))
+    hex_script = blockstack_script_to_hex(readable_script)
+    packaged_script = add_magic_bytes(hex_script)
+
+    return packaged_script
+
+
 def get_registration_recipient_from_outputs( outputs ):
 
     ret = None
@@ -112,7 +136,7 @@ def parse(bin_payload):
 
 def make_transaction(name, register_addr, consensus_hash, payment_addr, zonefilemanage_client):
     script_pubkey = virtualchain.make_payment_script(payment_addr)
-    nulldata = build(name, script_pubkey, register_addr, consensus_hash)
+    nulldata = build(name)
 
     # Get inputs and from address
     inputs = tx_get_unspents(payment_addr, zonefilemanage_client)
