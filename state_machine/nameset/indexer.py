@@ -33,7 +33,7 @@ RESERVED_KEYS = [
 log = config.get_logger("indexer")
 
 class StateEngine(object):
-    def __init__(self, magic_bytes, opcodes, opfields, impl=None, state=None, initial_snapshots = {}, expected_snapshots={}, backup_frequency=None, backup_max_age=None, readonly=False):
+    def __init__(self, magic_bytes, opcodes, opfields, impl=None, state=None, initial_snapshots = {}, expected_snapshots={}, backup_frequency=None, backup_max_age=None, read_only=False):
         self.consensus_hashes = initial_snapshots
         self.pending_opts = defaultdict(list)
         self.magic_bytes = magic_bytes
@@ -47,7 +47,7 @@ class StateEngine(object):
         self.expected_snapshots = expected_snapshots
         self.backup_frequency = backup_frequency
         self.backup_max_age = backup_max_age
-        self.readonly = readonly
+        self.read_only = read_only
 
         firsttime = True
 
