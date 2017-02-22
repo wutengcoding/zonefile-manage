@@ -350,6 +350,20 @@ class StateEngine(object):
             else:
                 log.info("Reject block_id : %s" % block_id)
 
+        # final commit
+        # the implementation has a chance here to feed any extra data into the consensus hash with this call
+        # (e.g. to affect internal state transitions that occur as seconary, holistic consequences to the sequence
+        # of prior operations for this block).
+        final_op = self.impl.db_commit(block_id, 'virtualchain_final', None, None, None, db_state=self.state)
+        if final_op is not None:
+            final_op['virtualchain_opcode'] = 'final'
+
+            new_ops['virtualchain_final'] = [final_op]
+            new_ops['virtualchain_ordered'].append(final_op)
+            new_ops['virtualchain_all_ops'].append(final_op)
+
+        return new_ops
+
 
 
     @classmethod
