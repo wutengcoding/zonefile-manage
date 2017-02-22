@@ -1,5 +1,11 @@
 import sqlite3
 import os
+import traceback
+
+from config import get_logger
+import time
+log = get_logger("db")
+
 
 ZONEFILEMANAGE_DB_SCRIPT = ""
 ZONEFILEMANAGE_DB_SCRIPT += """
@@ -65,3 +71,43 @@ def namedb_create( path ):
 
 def namedb_row_factory(cursor, row):
     pass
+
+
+def namedb_query_execute(cur, query, values):
+    """
+    Execute a query.  If it fails, exit.
+
+    DO NOT CALL THIS DIRECTLY.
+    """
+
+    timeout = 1.0
+    while True:
+        try:
+            ret = cur.execute(query, values)
+            return ret
+        except sqlite3.OperationalError as oe:
+            if oe.message == "database is locked":
+                timeout = timeout * 2 + timeout * random.random()
+                log.error(
+                    "Query timed out due to lock; retrying in %s: %s" % (timeout, namedb_format_query(query, values)))
+                time.sleep(timeout)
+
+            else:
+                log.exception(oe)
+                log.error("FATAL: failed to execute query (%s, %s)" % (query, values))
+                log.error("\n".join(traceback.format_stack()))
+                os.abort()
+
+        except Exception, e:
+            log.exception(e)
+            log.error("FATAL: failed to execute query (%s, %s)" % (query, values))
+            log.error("\n".join(traceback.format_stack()))
+            os.abort()
+
+def namedb_format_query( query, values ):
+    """
+    Turn a query into a string for printing.
+    Useful for debugging.
+    """
+
+    return "".join( ["%s %s" % (frag, "'%s'" % val if type(val) in [str, unicode] else val) for (frag, val) in zip(query.split("?"), values + ("",))] )

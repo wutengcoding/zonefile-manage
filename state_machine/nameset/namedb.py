@@ -11,6 +11,8 @@ DISPOSITION_RO = "readonly"
 DISPOSITION_RW = "readwrite"
 log = get_logger("namedb")
 
+
+
 class ZonefileManageDB(indexer.StateEngine):
     """
     State engine implementation for ZonefileManage
@@ -197,3 +199,28 @@ class ZonefileManageDB(indexer.StateEngine):
 
         ops_hash = "%064x" % 1142423
         return ops_hash
+
+
+
+    def store_block_ops_hash(self, block_id, ops_hash):
+        """
+        Store the operation hash for a block ID, calculated from
+        @calculate_block_ops_hash.
+        """
+        cur = self.db.cursor()
+        namedb_set_block_ops_hash(cur, block_id, ops_hash)
+        self.db.commit()
+
+        log.debug("ops hash at %s is %s" % (block_id, ops_hash))
+        return True
+
+def namedb_set_block_ops_hash( cur, block_number, ops_hash ):
+    """
+    Set the operations hash for a block height
+    """
+    insert_query = "INSERT INTO ops_hashes (block_id,ops_hash) VALUES (?,?);"
+    insert_args = (block_number, ops_hash)
+
+    namedb_query_execute( cur, insert_query, insert_args )
+
+
