@@ -134,6 +134,76 @@ def db_commit(block_id, op, op_data, txid, vtxindex, db_state=None):
         os.abort()
 
 
+def db_save(block_id, consensus_hash, pending_ops, filename, db_state=None):
+    """
+    (required by virtualchain state engine)
+
+    Save all persistent state to stable storage.
+    Called once per block.
+
+    Return True on success
+    Return False on failure.
+    """
+
+    from ..atlas import atlasdb_sync_zonefiles
+
+    if db_state is not None:
+
+        try:
+            # pre-calculate the ops hash for SNV
+            ops_hash = BlockstackDB.calculate_block_ops_hash(db_state, block_id)
+            db_state.store_block_ops_hash(block_id, ops_hash)
+        except Exception, e:
+            log.exception(e)
+            log.error("FATAL: failed to calculate ops hash at block %s" % block_id)
+            os.abort()
+
+        try:
+            # flush the database
+            db_state.commit_finished(block_id)
+        except Exception, e:
+            log.exception(e)
+            log.error("FATAL: failed to commit at block %s" % block_id)
+            os.abort()
+
+        try:
+            # sync block data to atlas, if enabled
+            blockstack_opts = get_blockstack_opts()
+            if blockstack_opts.get('atlas', False):
+                log.debug("Synchronize Atlas DB for %s" % (block_id - 1))
+                zonefile_dir = blockstack_opts.get('zonefiles', get_zonefile_dir())
+
+                gc.collect()
+                atlasdb_sync_zonefiles(db_state, block_id - 1, zonefile_dir=zonefile_dir)
+                gc.collect()
+
+        except Exception, e:
+            log.exception(e)
+            log.error("FATAL: failed to update Atlas db at %s" % block_id)
+            os.abort()
+
+        return True
+
+    else:
+        log.error("FATAL: no state engine given")
+        os.abort()
+
+
+def db_continue( block_id, consensus_hash ):
+    """
+    (required by virtualchain state engine)
+
+    Called when virtualchain has synchronized all state for this block.
+    Blockstack uses this as a preemption point where it can safely
+    exit if the user has so requested.
+    """
+
+    # every so often, clean up
+    if (block_id % 20) == 0:
+        log.debug("Pre-emptive garbage collection at %s" % block_id)
+        gc.collect(2)
+
+    return is_running() or os.environ.get("ZONEFILEMANAGE_TEST") == "1"
 
 
 def db_check( block_id, new_ops, op, op_data, txid, vtxindex, checked_ops, db_state=None ):

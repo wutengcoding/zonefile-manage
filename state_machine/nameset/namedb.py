@@ -77,6 +77,7 @@ class ZonefileManageDB(indexer.StateEngine):
         shutil.copyfile(self.get_db_path(), path)
 
 
+
     def get_db_path(self):
         return self.db_filename
 
