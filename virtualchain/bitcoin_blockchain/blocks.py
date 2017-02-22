@@ -392,7 +392,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
         txdata = {
             "version": txn.version,
             "locktime": txn.lock_time,
-            "hex": binascii.unhexlify(tx_bin),
+            "hex": binascii.hexlify(tx_bin),
             "txid": txn.calculate_hash(),
             "size": len(tx_bin),
             "blockhash": block_hash,
