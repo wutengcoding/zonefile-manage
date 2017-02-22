@@ -679,11 +679,11 @@ class StateEngine(object):
         else:
             self.lastblock = block_id
 
-            # make new backups
-            self.make_backups(block_id)
-
-            # clear out old backups
-            self.clear_old_backups(block_id)
+            # # make new backups
+            # self.make_backups(block_id)
+            #
+            # # clear out old backups
+            # self.clear_old_backups(block_id)
 
         continue_indexing = True
         if hasattr(self.impl, "db_continue"):
