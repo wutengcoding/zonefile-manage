@@ -209,9 +209,6 @@ class BlockchainDownloader( BitcoinBasicClient ):
                         log.debug("Malformed nulldata format")
                         nulldata_payload = outp['scriptPubkey']['hex'][4:]
 
-            # count all txs processed
-            self.num_txs_processed += 1
-
             if not has_nulldata:
                 continue
 
