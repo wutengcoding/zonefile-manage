@@ -308,7 +308,7 @@ class StateEngine(object):
             new_ops[op] = []
 
         new_ops['virtualchain_ordered'] = []
-        new_ops['virtualchain_all_ops'] = op
+        new_ops['virtualchain_all_ops'] = ops
 
         to_commit_sanitized = []
         to_commit_reserved = []
@@ -316,7 +316,6 @@ class StateEngine(object):
         # Let the implementation do an initial scan over the blocks
         initial_scan = []
 
-        print ops
 
         for i in xrange(0, len(ops)):
             op_data = ops[i]
