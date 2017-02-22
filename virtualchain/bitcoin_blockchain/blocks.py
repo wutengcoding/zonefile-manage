@@ -430,7 +430,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
         return {
             "value": Decimal(outp.value) / Decimal(10 ** 8),
             "n": i,
-            "scriptPubKey": script_info
+            "scriptPubkey": script_info
         }
 
 
