@@ -297,6 +297,47 @@ class BlockchainDownloader( BitcoinBasicClient ):
             if not self.finished:
                 log.exception(e)
                 return False
+        # Fetch remaining sender transactions
+        try:
+            self.fetch_sender_txs()
+        except Exception, e:
+            log.exception(e)
+            return False
+
+        try:
+            self.block_data_sanity_checks()
+        except AssertionError, ae:
+            log.exception(ae)
+            return False
+
+        return True
+
+
+    def block_data_sanity_checks(self):
+        """
+        Verify that the data we received makes sense.
+        Return True on success
+        Raise on error
+        """
+        assert self.have_all_block_data(), "Still missing block data"
+        assert self.num_txs_received == len(self.sender_info.keys()), "Num TXs received: %s; num TXs requested: %s" % (
+        self.num_txs_received, len(self.sender_info.keys()))
+
+        for (block_hash, block_info) in self.block_info.items():
+            for tx in block_info['txns']:
+                assert None not in tx['senders'], "Missing one or more senders in %s; dump follows\n%s" % (
+                tx['txid'], simplejson.dumps(tx, indent=4, sort_keys=True))
+                for i in xrange(0, len(tx['vin'])):
+                    inp = tx['vin'][i]
+                    sinfo = tx['senders'][i]
+
+                    assert self.sender_info.has_key(sinfo['txid']), "Surreptitious sender tx %s" % sinfo['txid']
+                    assert inp['vout'] == sinfo[
+                        'nulldata_vin_outpoint'], "Mismatched sender/input index (%s: %s != %s); dump follows\n%s" % \
+                                                  (sinfo['txid'], inp['vout'], sinfo['nulldata_vin_outpoint'],
+                                                   simplejson.dumps(tx, indent=4, sort_keys=True))
+
+        return True
 
 
     def fetch_txs_rpc(self, bitcoind_opts, txids):
@@ -491,7 +532,11 @@ class BlockchainDownloader( BitcoinBasicClient ):
                             self.add_sender_info( sender_txid, nulldata_input_vout_index, sender_tx['vout'][nulldata_input_vout_index])
 
                         else:
-                            self.add_
+                            self.add_sender_info(sender_txid, nulldata_input_vout_index, sender_tx['vout'][0])
+
+                    # Update accounting
+                    self.num_txs_received += 1
+        return True
 
 
     def have_all_block_data(self):
