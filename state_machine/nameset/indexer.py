@@ -172,7 +172,7 @@ class StateEngine(object):
                     raise Exception("Already processed block %s (%s)" % (processed_block_id, state_engine.get_consensus_at(processed_block_id)))
 
                 ops = state_engine.parse_block( processed_block_id, txs)
-                consensus_hash = state_engine.process_block(processed_block_id, expected_snapshots=expected_snapshots)
+                consensus_hash = state_engine.process_block(processed_block_id, ops, expected_snapshots=expected_snapshots)
 
                 if consensus_hash is not None:
                     rc = False
