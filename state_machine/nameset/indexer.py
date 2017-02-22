@@ -316,6 +316,8 @@ class StateEngine(object):
         # Let the implementation do an initial scan over the blocks
         initial_scan = []
 
+        print ops
+
         for i in xrange(0, len(ops)):
             op_data = ops[i]
             op_sanitized, _ = self.remove_reserved_keys(op_data)
