@@ -323,13 +323,32 @@ class StateEngine(object):
 
         for i in xrange(0, len(ops)):
             op_data = ops[i]
-            op_sanitized, op_reserved = self.remove_reserved_keys(op_data)
+            op_sanitized, reserved = self.remove_reserved_keys(op_data)
 
-            opcode = op_reserved['virtualchain_opcode']
+            opcode = reserved['virtualchain_opcode']
 
             # Check this op
-            self.impl.db_check()
+            rc = self.impl.db_check(block_id, new_ops, opcode, op_sanitized, reserved['virtualchain_txid'], reserved['virtualchain_txindex'], to_commit_sanitized, db_state=self.state)
+            if rc:
+                new_op_list = self.impl.db_commit(block_id, opcode, op_sanitized, reserved['virtualchain_txid'], reserved['virtualchain_txndex'], db_state=self.state)
+                if type(new_op_list) != list:
+                    new_op_list = [new_op_list]
 
+                for new_op in new_op_list:
+                    if new_op is not None:
+                        if type(new_op) == dict:
+                            to_commit_sanitized_op = copy.deepcopy(new_op)
+                            to_commit_sanitized.append(to_commit_sanitized_op)
+
+                            new_op.update(reserved)
+                            new_ops[opcode].append(new_op)
+                            new_ops['virtualchain_ordered'].append(new_op)
+
+                        else:
+                            continue
+
+            else:
+                log.info("Reject block_id : %s" % block_id)
 
 
 

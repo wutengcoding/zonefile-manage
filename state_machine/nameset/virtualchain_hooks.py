@@ -75,6 +75,66 @@ def db_parse(block_id, txid, vtxindex, op, data, senders, inputs, outputs, db_st
     return op
 
 
+def db_commit(block_id, op, op_data, txid, vtxindex, db_state=None):
+    """
+    (required by virtualchain state engine)
+
+    Advance the state of the state engine: get a list of all
+    externally visible state transitions.
+
+    Given a block ID and checked opcode, record it as
+    part of the database.  This does *not* need to write
+    the data to persistent storage, since save() will be
+    called once per block processed.
+
+    Returns one or more new name operations on success, which will
+    be fed into virtualchain to translate into a string
+    to be used to generate this block's consensus hash.
+    """
+
+    if db_state is not None:
+        if op_data is not None:
+
+            try:
+                assert 'txid' in op_data, "BUG: No txid given"
+                assert 'vtxindex' in op_data, "BUG: No vtxindex given"
+                assert op_data['txid'] == txid, "BUG: txid mismatch"
+                assert op_data['vtxindex'] == vtxindex, "BUG: vtxindex mismatch"
+                # opcode = op_get_opcode_name( op_data['op'] )
+                opcode = op_data.get('opcode', None)
+                assert opcode in OPCODE_PREORDER_OPS + OPCODE_CREATION_OPS + OPCODE_TRANSITION_OPS + OPCODE_STATELESS_OPS, \
+                    "BUG: uncategorized opcode '%s'" % opcode
+
+            except Exception, e:
+                log.exception(e)
+                log.error("FATAL: failed to commit operation")
+                os.abort()
+
+            if opcode in OPCODE_STATELESS_OPS:
+                # state-less operation
+                return []
+
+            else:
+                op_seq = db_state.commit_operation(op_data, block_id)
+                return op_seq
+
+        else:
+            # final commit for this block
+            try:
+                db_state.commit_finished(block_id)
+            except Exception, e:
+                log.exception(e)
+                log.error("FATAL: failed to commit at block %s" % block_id)
+                os.abort()
+
+            return None
+
+    else:
+        log.error("FATAL: no state engine given")
+        os.abort()
+
+
+
 
 def db_check( block_id, new_ops, op, op_data, txid, vtxindex, checked_ops, db_state=None ):
     """
