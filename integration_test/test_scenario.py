@@ -5,6 +5,7 @@ import argparse
 import shutil
 import socket
 import time
+import threading
 import traceback
 
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
@@ -118,6 +119,24 @@ regtest = True
 """ % (TEST_RPC_PORT, TEST_CLIENT_RPC_PORT)
 
 
+
+class Pinger(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.running = False
+
+    def run(self):
+        self.running = True
+        bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
+        while self.running:
+            try:
+                bitcoind.ping()
+                time.sleep(0.25)
+            except socket.error:
+                bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
+
+    def ask_join(self):
+        self.running = False
 
 def load_scenario( scenario_name ):
     """
@@ -370,6 +389,11 @@ def run_scenario( scenario, config_file, client_config_file, interactive = False
     working_dir = get_working_dir()
 
     utxo_opts = {}
+
+    # Start the pinger
+    pinger = Pinger()
+    pinger.start()
+
 
     #set up the environment
     testlib.set_utxo_opts(utxo_opts)
