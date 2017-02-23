@@ -41,9 +41,7 @@ def broadcast_tx( tx_hex, tx_broadcaster=None ):
 
     resp = {}
     try:
-        # resp = broadcast_transaction( tx_hex, tx_broadcaster )
-        unspend = get_unspents('mgoZn4k6LuqiTYsVqQz9eu4LgpGVSz6NUC', tx_broadcaster)
-        log.info("test unspent mgoZn4k6LuqiTYsVqQz9eu4LgpGVSz6NUC is %s " % unspend)
+        resp = broadcast_transaction( tx_hex, tx_broadcaster )
 
         if 'tx_hash' not in resp or 'error' in resp:
             log.error("Failed to send %s" % tx_hex)
