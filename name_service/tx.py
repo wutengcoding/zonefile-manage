@@ -4,7 +4,7 @@ import simplejson
 
 from  state_machine.script import *
 from config import get_bitcoin_regtest_opts
-from pybitcoin import serialize_transaction, sign_all_unsigned_inputs, broadcast_transaction
+from pybitcoin import serialize_transaction, sign_all_unsigned_inputs, broadcast_transaction, get_unspents
 import virtualchain
 import os
 
@@ -36,12 +36,15 @@ def broadcast_tx( tx_hex, tx_broadcaster=None ):
     """
     assert tx_broadcaster is not None, "Tx_broadcaster is null"
 
-    if os.environ.get("BLOCKSTACK_TEST") == "1":
+    if os.environ.get("ZONEFILEMANAGE_TEST") == "1":
         log.debug("Send %s" % tx_hex)
 
     resp = {}
     try:
-        resp = broadcast_transaction( tx_hex, tx_broadcaster )
+        # resp = broadcast_transaction( tx_hex, tx_broadcaster )
+        unspend = get_unspents('mgoZn4k6LuqiTYsVqQz9eu4LgpGVSz6NUC', tx_broadcaster)
+        log.info("test unspent mgoZn4k6LuqiTYsVqQz9eu4LgpGVSz6NUC is %s " % unspend)
+
         if 'tx_hash' not in resp or 'error' in resp:
             log.error("Failed to send %s" % tx_hex)
             resp['error'] = 'Failed to broadcast transaction: %s' % tx_hex
