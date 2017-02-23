@@ -51,7 +51,7 @@ def broadcast_tx( tx_hex, tx_broadcaster=None ):
         log.exception(e)
         resp['error'] = 'Failed to broadcast transaction: %s' % tx_hex
 
-        if os.environ.get("BLOCKSTACK_TEST") == "1":
+        if os.environ.get("ZONEFILEMANAGE_TEST") == "1":
             # should NEVER happen in test mode
             log.error("FATAL: failed to send transaction:\n%s" % simplejson.dumps(resp, indent=4, sort_keys=True))
             sys.exit(1)
