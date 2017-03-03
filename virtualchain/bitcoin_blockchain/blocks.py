@@ -205,7 +205,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
                 if outp['scriptPubkey']['type'] == 'nulldata':
                     has_nulldata = True
                     nulldata_payload = bitcoin.deserialize_script(outp['scriptPubkey']['hex'])[1]
-                    if nulldata_payload  not in [str, unicode]:
+                    if type(nulldata_payload)  not in [str, unicode]:
                         log.debug("Malformed nulldata format")
                         nulldata_payload = outp['scriptPubkey']['hex'][4:]
 
