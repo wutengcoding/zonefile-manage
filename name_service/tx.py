@@ -39,7 +39,6 @@ def broadcast_tx( tx_hex, tx_broadcaster=None ):
     if os.environ.get("ZONEFILEMANAGE_TEST") == "1":
         log.debug("Send %s" % tx_hex)
 
-
     resp = {}
     try:
         resp = broadcast_transaction( tx_hex, tx_broadcaster )

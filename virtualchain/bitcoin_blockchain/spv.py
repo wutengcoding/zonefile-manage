@@ -329,6 +329,8 @@ class SPVClient(object):
 
             # need to sync
             if current_block_id >= 0:
+                prev_block_header = SPVClient.read_header(path, current_block_id)
+                prev_block_hash = prev_block_header['hash']
                 pass
             else:
                 prev_block_hash = GENESIS_BLOCK_HASH_TESTNET
