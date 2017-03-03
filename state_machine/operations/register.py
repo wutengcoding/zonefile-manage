@@ -135,7 +135,7 @@ def make_transaction(name, register_addr, consensus_hash, payment_addr, zonefile
 
     # Get inputs and from address
     inputs = tx_get_unspents(payment_addr, zonefilemanage_client)
-
+    log.info("inputs is: %s" % inputs)
     # Build custom outputs
     outputs = make_outputs(nulldata, inputs, payment_addr)
 
@@ -145,5 +145,18 @@ def make_transaction(name, register_addr, consensus_hash, payment_addr, zonefile
 def make_outputs(data, inputs, payment_addr):
     return [
         {'script_hex': make_op_return_script(str(data), format='hex'),
-         'value': 0}
+         'value': 0},
+        # change output
+        {"script_hex": make_pay_to_address_script(payment_addr),
+         "value": calculate_change_amount(inputs, 0, 0)}
     ]
+
+def calculate_change_amount(inputs, send_amount, fee):
+    # calculate the total amount  coming into the transaction from the inputs
+    total_amount_in = sum([input['value'] for input in inputs])
+    # change = whatever is left over from the amount sent & the transaction fee
+    change_amount = total_amount_in - send_amount - fee
+    # check to ensure the change amount is a non-negative value and return it
+    if change_amount < 0:
+        raise ValueError('Not enough inputs for transaction (total: %s, to spend: %s, fee: %s).' % (total_amount_in, send_amount, fee))
+    return change_amount

@@ -3,6 +3,7 @@ from tx import sign_and_broadcast_tx
 import virtualchain
 from config import get_logger
 from state_machine.operations import *
+from pybitcoin import serialize_transaction, sign_all_unsigned_inputs, broadcast_transaction, get_unspents, make_op_return_tx
 
 log = get_logger("nameops")
 
@@ -27,6 +28,10 @@ def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx
     resp = {}
 
     try:
+        # data = '00' * 20
+        #  tx = make_op_return_tx(data, virtualchain.BitcoinPrivateKey(payment_privkey_info), tx_broadcaster, fee=10000, format='bin')
+        # temp = broadcast_transaction(tx, tx_broadcaster)
+        # print temp
         resp = sign_and_broadcast_tx(unsigned_tx, payment_privkey_info, tx_broadcaster)
     except Exception, e:
         log.exception(e)
@@ -49,7 +54,5 @@ def do_name_transfer():
 
 def name_register_tx(name, reveal_address, consensus_hash, payment_address, utxo_client):
     inputs, outputs = make_tx_name_register(name, reveal_address, consensus_hash, payment_address, utxo_client)
-    log.info("input is: %s" % inputs)
-    log.info("output is: %s" % outputs)
     return pybitcoin.serialize_transaction(inputs, outputs)
 

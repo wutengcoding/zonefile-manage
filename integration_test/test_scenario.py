@@ -2,6 +2,7 @@ import os
 import logging
 import importlib
 import argparse
+import random
 import shutil
 import socket
 import time
@@ -202,14 +203,20 @@ def bitcoind_regtest_reset():
     set_bitcoin_regtest_opts(opts)
 
     if os.path.exists(bitcoin_dir):
-        if os.path.exists(bitcoin_pidpath):
+        # if os.path.exists(bitcoin_pidpath):
             # kill running daemon
-            os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
-            while True:
-                rc = os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
-                if rc != 0:
-                    log.info("stop the bitcoind daemon")
-                    break
+            # os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
+        for i in xrange(0, 10000000):
+            rc = os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
+            if rc != 0:
+                log.info("stop the bitcoind daemon")
+                break
+            else:
+                delay = 2 ** i + (2**i)*random.random()
+                try:
+                    time.sleep(delay)
+                except Exception, e:
+                    log.exception(e)
         shutil.rmtree(bitcoin_dir)
 
     os.makedirs(bitcoin_dir)
