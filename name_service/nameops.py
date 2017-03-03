@@ -49,5 +49,7 @@ def do_name_transfer():
 
 def name_register_tx(name, reveal_address, consensus_hash, payment_address, utxo_client):
     inputs, outputs = make_tx_name_register(name, reveal_address, consensus_hash, payment_address, utxo_client)
+    log.info("input is: %s" % inputs)
+    log.info("output is: %s" % outputs)
     return pybitcoin.serialize_transaction(inputs, outputs)
 
