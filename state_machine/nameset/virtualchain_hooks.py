@@ -5,7 +5,7 @@ import config
 import os
 import sys
 from state_machine.operations import *
-
+from helper import *
 log = get_logger("virtualchain_hooks")
 
 DISPOSITION_RO = "readonly"
@@ -50,7 +50,7 @@ def db_parse(block_id, txid, vtxindex, op, data, senders, inputs, outputs, db_st
         raise Exception("No sender given")
 
     try:
-        opcode = op_get_opcode_name()
+        opcode = op_get_opcode_name(op)
         assert opcode is not None, "Unrecongnized opcode '%s'" % op
     except Exception, e:
         log.exception(e)

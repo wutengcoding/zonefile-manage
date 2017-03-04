@@ -4,7 +4,7 @@ from state_machine.b40 import *
 import virtualchain
 from pybitcoin import embed_data_in_blockchain, serialize_transaction, \
     serialize_sign_and_broadcast, make_op_return_script, \
-    make_pay_to_address_script, hex_hash160
+    make_pay_to_address_script, hex_hash160, make_op_return_tx
 
 from config import *
 
@@ -20,13 +20,13 @@ def build(name):
 
     0    2  3                             39
     |----|--|-----------------------------|
-    magic op   name.ns_id (37 bytes)
+    magic op   name (37 bytes)
 
     """
 
-    readable_script = "NAME_REGISTER 0x%s" % (hexlify(name))
-    hex_script = zonefilemanage_script_to_hex(readable_script)
-    packaged_script = add_magic_bytes(hex_script)
+    readable_script = "NAME_REGISTER %s" % (name)
+    script = parse_op(readable_script)
+    packaged_script = add_magic_bytes(script)
 
     return packaged_script
 
@@ -65,18 +65,6 @@ def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid):
         assert recipient is not None
         assert recipient_address is not None
 
-        assert len(senders) > 0
-        assert 'script_pubkey' in senders[0].keys()
-        assert 'addresses' in senders[0].keys()
-
-        sender_script = str(senders[0]['script_pubkey'])
-        sender_address = str(senders[0]['address'][0])
-
-        assert sender_script is not None
-        assert sender_address is not None
-
-        if str(senders[0]['script_type']) == 'pubkeyhash':
-            sender_pubkey_hex = get_public_key_hex_from_tx(inputs, sender_address)
     except Exception, e:
         log.exception(e)
         raise Exception("Failed to extract")
@@ -86,8 +74,6 @@ def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid):
 
     ret = {
         "value_hash": None,
-        "sender": sender_script,
-        "address": sender_address,
         "recipient": recipient,
         "recipient_address": recipient_address,
         "revoked": False,
@@ -100,12 +86,6 @@ def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid):
     }
 
     ret.update(parsed_payload)
-
-    # NOTE: will get deleted if this is a renew
-    if sender_pubkey_hex is not None:
-        ret['sender_pubkey'] = sender_pubkey_hex
-    else:
-        ret['sender_pubkey'] = None
 
     return ret
 
@@ -120,43 +100,19 @@ def parse(bin_payload):
 
     fqn = bin_payload
 
-    if not is_name_valid(fqn):
-        return None
+    # if not is_name_valid(fqn):
+    #     return None
 
     return {
-        'opcode': 'NAME_REGISTRATION',
+        'opcode': 'NAME_REGISTER',
         'name': fqn
     }
 
 
-def make_transaction(name, register_addr, consensus_hash, payment_addr, zonefilemanage_client):
-    script_pubkey = virtualchain.make_payment_script(payment_addr)
-    nulldata = build(name)
+def make_transaction(name, payment_privkey_info, register_addr, consensus_hash, payment_addr, zonefilemanage_client):
 
-    # Get inputs and from address
-    inputs = tx_get_unspents(payment_addr, zonefilemanage_client)
-    log.info("inputs is: %s" % inputs)
-    # Build custom outputs
-    outputs = make_outputs(nulldata, inputs, payment_addr)
+    data = build(name)
+    tx = make_op_return_tx(data, virtualchain.BitcoinPrivateKey(payment_privkey_info), zonefilemanage_client, fee=10000,
+                       format='bin')
+    return tx
 
-    return (inputs, outputs)
-
-
-def make_outputs(data, inputs, payment_addr):
-    return [
-        {'script_hex': make_op_return_script(str(data), format='hex'),
-         'value': 0},
-        # change output
-        {"script_hex": make_pay_to_address_script(payment_addr),
-         "value": calculate_change_amount(inputs, 0, 0)}
-    ]
-
-def calculate_change_amount(inputs, send_amount, fee):
-    # calculate the total amount  coming into the transaction from the inputs
-    total_amount_in = sum([input['value'] for input in inputs])
-    # change = whatever is left over from the amount sent & the transaction fee
-    change_amount = total_amount_in - send_amount - fee
-    # check to ensure the change amount is a non-negative value and return it
-    if change_amount < 0:
-        raise ValueError('Not enough inputs for transaction (total: %s, to spend: %s, fee: %s).' % (total_amount_in, send_amount, fee))
-    return change_amount

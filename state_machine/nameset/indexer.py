@@ -172,7 +172,7 @@ class StateEngine(object):
 
             # sort by block height
             block_ids_and_txs.sort()
-
+            log.info('block_ids_txs is %s' % block_ids_and_txs)
             for processed_block_id, txs in block_ids_and_txs:
 
                 if state_engine.get_consensus_at(processed_block_id) is not None:
@@ -268,6 +268,7 @@ class StateEngine(object):
         op['virtualchain_txid'] = tx['txid']
         op['virtualchain_txindex'] = tx['txindex']
 
+        log.info('op is %s ' % op)
         return op
 
 
@@ -280,7 +281,7 @@ class StateEngine(object):
 
         for i in xrange(0, len(txs)):
 
-            tx = tx[i]
+            tx = txs[i]
             op = self.parse_transaction( block_id, tx )
             if op is not None:
                 ops.append(op)

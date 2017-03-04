@@ -168,7 +168,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
 
 
     def handle_block(self, message_header, block):
-        log.info("handle block message")
+        log.info("handle block message %s" % block)
         if self.have_all_block_data():
             self.loop_exit()
             return
@@ -194,10 +194,11 @@ class BlockchainDownloader( BitcoinBasicClient ):
         nulldata_txs = []
         relindex = 0
 
+        log.info("The initial txns format is %s " % block.txns)
+
         for txindex in xrange(0, len(block.txns)):
 
             txdata = self.parse_tx(block.txns[txindex], header, block_hash, txindex)
-
             has_nulldata = False
             nulldata_payload = None
 
@@ -211,7 +212,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
 
             if not has_nulldata:
                 continue
-
+            log.info('nulldata is %s ' % binascii.unhexlify(nulldata_payload))
             txdata['nulldata'] = nulldata_payload
             txdata['relindex'] = relindex
 
@@ -223,7 +224,6 @@ class BlockchainDownloader( BitcoinBasicClient ):
         self.block_info[block_hash]['num_senders'] = 0
 
         sender_txhashes = []
-        log.info("Whether can add 1 to blocks received")
         for txn in self.block_info[block_hash]['txns']:
             for i in xrange(0, len(txn['vin'])):
                 inp = txn['vin'][i]
@@ -297,20 +297,21 @@ class BlockchainDownloader( BitcoinBasicClient ):
             if not self.finished:
                 log.exception(e)
                 return False
-        # Fetch remaining sender transactions
-        try:
-            self.fetch_sender_txs()
-        except Exception, e:
-            log.exception(e)
-            return False
-
-        try:
-            self.block_data_sanity_checks()
-        except AssertionError, ae:
-            log.exception(ae)
-            return False
-
         return True
+        # # Fetch remaining sender transactions
+        # try:
+        #     self.fetch_sender_txs()
+        # except Exception, e:
+        #     log.exception(e)
+        #     return False
+        #
+        # try:
+        #     self.block_data_sanity_checks()
+        # except AssertionError, ae:
+        #     log.exception(ae)
+        #     return False
+        #
+        # return True
 
 
     def block_data_sanity_checks(self):
@@ -427,6 +428,7 @@ class BlockchainDownloader( BitcoinBasicClient ):
         txn_serializer = TxSerializer()
         tx_bin = txn_serializer.serialize(txn)
 
+
         txdata = {
             "version": txn.version,
             "locktime": txn.lock_time,
@@ -485,6 +487,8 @@ class BlockchainDownloader( BitcoinBasicClient ):
                 "asm": bits.tx_script_to_asm(scriptSig)
             }
         }
+        log.info("Parsed input is %s" % ret)
+        return ret
 
     def fetch_sender_txs(self):
         """

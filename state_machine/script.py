@@ -172,9 +172,18 @@ def tx_sign_singlesig(tx, idx, private_key_info, hashcode=bitcoin.SIGHASH_ALL):
     txobj['ins'][idx]['script'] = bitcoin.serialize_script([sig, pub])
     return bitcoin.serialize(txobj)
 
-def add_magic_bytes(hex_script):
-    return '{}{}'.format(hexlify(MAGIC_BYTES), hex_script)
+def add_magic_bytes(script):
+    return '{}{}'.format(MAGIC_BYTES, script)
 
+
+def parse_op(script):
+    parts = script.split(' ')
+    for part in parts:
+        if part in NAME_OPCODES:
+            script = NAME_OPCODES[part]
+        else:
+            script += part
+    return script
 
 def tx_make_input_signature(tx, idx, script, privkey_str, hashcode):
     """

@@ -109,17 +109,3 @@ def op_get_mutate_fields( op_name ):
     fields = MUTATE_FIELDS[op_name][:]
     return fields
 
-def op_extract( op_name, data, senders, inputs, outputs, block_id, vtxindex, txid ):
-    """
-    Extract an operation from transaction data.
-    Return the extracted fields as a dict.
-    """
-
-    global EXTRACT_METHODS
-
-    if op_name not in EXTRACT_METHODS.keys():
-        raise Exception("No such operation '%s'" % op_name)
-
-    method = EXTRACT_METHODS[op_name]
-    op_data = method( data, senders, inputs, outputs, block_id, vtxindex, txid )
-    return op_data

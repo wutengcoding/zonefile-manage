@@ -241,7 +241,7 @@ def op_get_opcode_name(op_string):
     if op not in OPCODES_NAMES.keys():
         raise Exception("No such operation '%s'" % op)
 
-    return OPCODES_NAMES['op']
+    return OPCODES_NAMES[op]
 
 
 def set_bitcoin_regtest_opts(opts):
