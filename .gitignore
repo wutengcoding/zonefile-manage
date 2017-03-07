@@ -1,3 +1,3 @@
 .idea
-integration-tests/test.log
 *.pyc
+integration_test/test.log
