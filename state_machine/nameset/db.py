@@ -115,7 +115,7 @@ def namedb_format_query( query, values ):
 
 
 
-def namedb_get_name(cur, name, current_block, include_expired=False, include_history=False):
+def namedb_get_name(cur, name, current_block, included_expired=False, include_history=False):
     select_query = "SELECT * FROM name_records WHERE NAME = ?;"
     args = (name,)
     name_rows = namedb_query_execute(cur, select_query, args)

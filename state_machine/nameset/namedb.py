@@ -77,12 +77,12 @@ class ZonefileManageDB(indexer.StateEngine):
 
         shutil.copyfile(self.get_db_path(), path)
 
-    def get_name(self, name, lastblock=None, inclued_expired=False):
+    def get_name(self, name, lastblock=None, included_expired=False):
         if lastblock is None:
             lastblock = self.lastblock
 
         cur = self.db.cursor()
-        name_rec = namedb_get_name(cur, name, lastblock, inclued_expired = inclued_expired)
+        name_rec = namedb_get_name(cur, name, lastblock, included_expired = included_expired)
         return name_rec
 
     def get_db_path(self):

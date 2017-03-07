@@ -336,7 +336,7 @@ class StateEngine(object):
             # Check this op
             rc = self.impl.db_check(block_id, new_ops, opcode, op_sanitized, reserved['virtualchain_txid'], reserved['virtualchain_txindex'], to_commit_sanitized, db_state=self.state)
             if rc:
-                new_op_list = self.impl.db_commit(block_id, opcode, op_sanitized, reserved['virtualchain_txid'], reserved['virtualchain_txndex'], db_state=self.state)
+                new_op_list = self.impl.db_commit(block_id, opcode, op_sanitized, reserved['virtualchain_txid'], reserved['virtualchain_txindex'], db_state=self.state)
                 if type(new_op_list) != list:
                     new_op_list = [new_op_list]
 

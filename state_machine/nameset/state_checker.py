@@ -25,17 +25,10 @@ def state_create(history_id_key, table_name, collision_checker):
         # handle decorator args
         def wrapped_check(state_engine, nameop, block_id, checked_ops):
             rc = check(state_engine, nameop, block_id, checked_ops)
-
-            # Verify no duplicates
-
-            rc = state_check_collisions(state_engine, nameop, history_id_key, block_id, checked_ops, collision_checker)
             if rc:
-                # this is a duplicate!
-                log.debug("COLLISION on %s '%s'" % (history_id_key, nameop[history_id_key]))
-                rc = False
+                log.info("REGISTER check is succeed")
             else:
-                # no collision
-                rc = True
+                log.info("REGISTER check is failed")
             return rc
         return wrapped_check
     return wrap

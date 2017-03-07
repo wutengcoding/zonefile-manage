@@ -101,21 +101,14 @@ def db_commit(block_id, op, op_data, txid, vtxindex, db_state=None):
                 assert op_data['vtxindex'] == vtxindex, "BUG: vtxindex mismatch"
                 # opcode = op_get_opcode_name( op_data['op'] )
                 opcode = op_data.get('opcode', None)
-                assert opcode in OPCODE_PREORDER_OPS + OPCODE_CREATION_OPS + OPCODE_TRANSITION_OPS + OPCODE_STATELESS_OPS, \
-                    "BUG: uncategorized opcode '%s'" % opcode
 
             except Exception, e:
                 log.exception(e)
                 log.error("FATAL: failed to commit operation")
                 os.abort()
 
-            if opcode in OPCODE_STATELESS_OPS:
-                # state-less operation
-                return []
-
-            else:
-                op_seq = db_state.commit_operation(op_data, block_id)
-                return op_seq
+            op_seq = db_state.commit_operation(op_data, block_id)
+            return op_seq
 
         else:
             # final commit for this block
@@ -217,13 +210,6 @@ def db_check( block_id, new_ops, op, op_data, txid, vtxindex, checked_ops, db_st
                 log.exception(e)
                 log.error("FATAL: no opcode set")
                 os.abort()
-
-            # verify that all mutate fields are present
-            rc = check_mutate_fields(opcode, op_data)
-            if not rc:
-                log.error("FATAL: bug in '%s' check() method did not return all mutate fields" % opcode)
-                os.abort()
-
         else:
             accept = False
 
