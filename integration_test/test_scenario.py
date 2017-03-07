@@ -389,7 +389,7 @@ def run_scenario( scenario, config_file, client_config_file, interactive = False
     spv_header_path = os.path.join(virtualchain_working_dir, "spv_headers.dat")
     virtualchain.setup_virtualchain( state_engine )
 
-    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RO)
+    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
     log.info("Connect to the bitcoind ")
     bitcoind = bitcoin_regtest_connect( bitcoin_regtest_opts() )

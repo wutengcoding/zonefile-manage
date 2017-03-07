@@ -1,3 +1,4 @@
+import json
 import random
 import sqlite3
 import os
@@ -13,11 +14,9 @@ log = get_logger("db")
 ZONEFILEMANAGE_DB_SCRIPT = ""
 ZONEFILEMANAGE_DB_SCRIPT += """
 CREATE TABLE name_records( name STRING NOT NULL,
-                           name_hash128 TEXT NOT NULL,
                            value_hash TEXT,
-                           sender TEXT NOT NULL,
-                           sender_pubkey NOT NULL,
-                           address TEXT,
+                           recipient_address TEXT NOT NULL,
+                           recipient TEXT,
                            block_number INT NOT NULL,
                            first_registered INT NOT NULL,
                            last_renewed INT NOT NULL,
@@ -25,7 +24,7 @@ CREATE TABLE name_records( name STRING NOT NULL,
                            txid TEXT NOT NULL,
                            vtxindex INT NOT NULL,
                            consensus TEXT,
-                           transfer_send_block_id INT,
+                           revoked INT,
                            --primary key includes block number, so an expired name can be re-registered
                            PRIMARY KEY(name, block_number)
                            );
@@ -36,10 +35,6 @@ CREATE TABLE ops_hashed( block_id INTEGER PRIMARY KEY NOT NULL,
                          ops_hash STRING NOT NULL);
 """
 
-
-ZONEFILEMANAGE_DB_SCRIPT += """
-CREATE INDEX hash_names_index ON name_records( name_hash128, name );
-"""
 ZONEFILEMANAGE_DB_SCRIPT += """
 CREATE INDEX value_hash_names_index on name_records( value_hash, name );
 """
@@ -69,11 +64,29 @@ def namedb_create( path ):
         conn.execute(line)
 
     conn.row_factory = namedb_row_factory
-
     return conn
 
 def namedb_row_factory(cursor, row):
-    pass
+    """
+    Row factor to enforce some additional types:
+    * force 'revoked' to be a bool
+    """
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        if col[0] == 'revoked':
+            if row[idx] == 0:
+                d[col[0]] = False
+            elif row[idx] == 1:
+                d[col[0]] = True
+            elif row[idx] is None:
+                d[col[0]] = None
+            else:
+                raise Exception("Invalid value for 'revoked': %s" % row[idx])
+
+        else:
+            d[col[0]] = row[idx]
+
+    return d
 
 
 def namedb_query_execute(cur, query, values):
@@ -118,14 +131,14 @@ def namedb_format_query( query, values ):
 
 
 def namedb_get_name(cur, name, current_block, included_expired=False, include_history=False):
-    select_query = "SELECT * FROM name_records WHERE NAME = ?;"
+    select_query = "SELECT * FROM name_records WHERE NAME = (?);"
     args = (name,)
     name_rows = namedb_query_execute(cur, select_query, args)
     name_row = name_rows.fetchone()
 
     if name_row is None:
         return None
-
+    log.info("already has name_rows %s" % json.dumps(name_row))
     name_rec = {}
     name_rec.update(name_row)
     return name_rec
@@ -138,7 +151,7 @@ def namedb_state_create(cur, opcode, new_record, block_id, vtxindex, txid, recor
     return True
 
 def namedb_name_insert(cur, input_name_rec):
-    name_rec = copy.deepcopy()
+    name_rec = copy.deepcopy(input_name_rec)
     try:
         query, values = namedb_insert_prepare(cur, name_rec, "name_records")
     except Exception, e:
@@ -152,7 +165,7 @@ def namedb_name_insert(cur, input_name_rec):
 
 def namedb_insert_prepare(cur, record, table_name):
 
-    namedb_assert_fields_match(cur, record, table_name)
+    # namedb_assert_fields_match(cur, record, table_name)
 
     columns = record.keys()
     columns.sort()
@@ -191,10 +204,13 @@ def namedb_assert_fields_match(cur, record, table_name, record_matches_columns=T
     rec_extra = []
 
     # sanity check: all fields must be defined
-    name_fields_rows = cur.execute("PRAGMA table_info(%s);" % table_name)
+    # name_fields_rows = cur.execute("PRAGMA table_info(%s);" % table_name)
+    name_fields_rows = cur.execute("PRAGMA table_info(name_records)")
+    for name in name_fields_rows.fetchall():
+        print name
     name_fields = []
     for row in name_fields_rows:
-        name_fields.append(row['name'])
+        name_fields.append(row[1])
 
     if columns_match_record:
         # make sure each column has a record field

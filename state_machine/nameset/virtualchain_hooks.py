@@ -3,6 +3,7 @@ from namedb import *
 import virtualchain
 import os
 import sys
+import config
 from state_machine.operations import *
 log = get_logger("virtualchain_hooks")
 
@@ -66,6 +67,7 @@ def db_parse(block_id, txid, vtxindex, op, data, senders, inputs, outputs, db_st
     if op is not None:
         op['vtxindex'] = int(vtxindex)
         op['txid'] = str(txid)
+        op['block_number'] = block_id
 
     else:
         log.error("Unparseable op '%s'" % opcode)
@@ -101,8 +103,7 @@ def db_commit(block_id, op, op_data, txid, vtxindex, db_state=None):
                 # opcode = op_get_opcode_name( op_data['op'] )
                 opcode = op_data.get('opcode', None)
                 log.info('opcode is %s' % opcode)
-                assert opcode in  OPCODE_NAME_STATE_CREATIONS + OPCODE_NAME_STATE_TRANSITIONS \
-                    "BUG: uncategorized opcode '%s'" % opcode
+                assert opcode in  OPCODE_NAME_STATE_CREATIONS + OPCODE_NAME_STATE_TRANSITIONS, "BUG: uncategorized opcode '%s'" % opcode
             except Exception, e:
                 log.exception(e)
                 log.error("FATAL: failed to commit operation")

@@ -705,6 +705,7 @@ class StateEngine(object):
         if expected_snapshots is None:
             expected_snapshots = self.expected_snapshots
 
+        # IMPORTANT logic here
         new_ops = self.process_ops(block_id, ops)
         sanitized_ops = {}
 

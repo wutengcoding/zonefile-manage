@@ -20,8 +20,4 @@ NUMEREC_FIELDS = [
 ]
 
 
-def state_create_get_table(nameop):
-    """
-    Get the table of a state-creating operation
-    """
-    return nameop['__table__']
+

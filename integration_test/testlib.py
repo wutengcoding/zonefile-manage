@@ -87,7 +87,6 @@ def next_block( **kw ):
     if snapshots_dir is None:
         snapshots_dir = tempfile.mkdtemp(prefix='zonefilemanage-test-databases-')
 
-    del state_engine
 
     # Flush all transactions and reset state engine
     kw['next_block_upcall']()

@@ -6,6 +6,7 @@ from db import *
 from config import *
 from state_machine.operations import *
 from state_machine.nameset import *
+from state_machine.nameset.state_checker import *
 DISPOSITION_RO = "readonly"
 DISPOSITION_RW = "readwrite"
 log = get_logger("namedb")
@@ -144,26 +145,26 @@ class ZonefileManageDB(indexer.StateEngine):
         if type(op_seq) != list:
             op_seq = [op_seq]
 
-        # make sure all the mutate fields necessary to derive
-        # the next consensus hash are in place.
-        for i in xrange(0, len(op_seq)):
-
-            cur = self.db.cursor()
-            history = None
-
-            # temporarily store history...
-            if history_id is not None:
-                history = namedb_get_history(cur, history_id)
-                op_seq[i]['history'] = history
-
-                # set all extra consensus fields
-            self.add_all_commit_consensus_values(opcode, op_seq[i], nameop, current_block_number)
-
-            # revert...
-            if history is not None:
-                del op_seq[i]['history']
-
-            self.log_commit(current_block_number, op_seq[i]['vtxindex'], op_seq[i]['op'], opcode, op_seq[i])
+        # # make sure all the mutate fields necessary to derive
+        # # the next consensus hash are in place.
+        # for i in xrange(0, len(op_seq)):
+        #
+        #     cur = self.db.cursor()
+        #     history = None
+        #
+        #     # temporarily store history...
+        #     if history_id is not None:
+        #         history = namedb_get_history(cur, history_id)
+        #         op_seq[i]['history'] = history
+        #
+        #         # set all extra consensus fields
+        #     self.add_all_commit_consensus_values(opcode, op_seq[i], nameop, current_block_number)
+        #
+        #     # revert...
+        #     if history is not None:
+        #         del op_seq[i]['history']
+        #
+        #     self.log_commit(current_block_number, op_seq[i]['vtxindex'], op_seq[i]['op'], opcode, op_seq[i])
 
         return op_seq
 
@@ -176,7 +177,19 @@ class ZonefileManageDB(indexer.StateEngine):
 
         self.db.commit()
 
+    def sanitize_op(self, op_data):
 
+        # remove invariant tags (i.e. added by our invariant state_* decorators)
+        to_remove = get_state_invariant_tags()
+        for tag in to_remove:
+            if tag in op_data.keys():
+                del op_data[tag]
+
+        for extra_field in ['opcode']:
+            if extra_field in op_data:
+                del op_data[extra_field]
+
+        return op_data
 
     def commit_state_create(self, nameop, current_block_number):
         # have to have read-write disposition
@@ -191,15 +204,21 @@ class ZonefileManageDB(indexer.StateEngine):
         log.info('nameop is %s' % nameop)
 
         table = state_create_get_table(nameop)
+        initial_state = self.sanitize_op(nameop)
         # create from preorder
-        rc = namedb_state_create(cur, opcode, nameop,
-                                 current_block_number, nameop['vtxindex'], nameop['txid'],table)
+        rc = namedb_state_create(cur, opcode, initial_state,
+                                 current_block_number, initial_state['vtxindex'], initial_state['txid'], table)
 
         if not rc:
             self.db.rollback()
             os.abort()
 
         self.db.commit()
+        res = self.is_name_registered(nameop['name'])
+        log.info(res)
+        return initial_state
+
+
 
 
     def commit_state_transition(self, nameop, current_block_number):

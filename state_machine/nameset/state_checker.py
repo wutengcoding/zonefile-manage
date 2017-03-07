@@ -34,3 +34,33 @@ def state_create(history_id_key, table_name, collision_checker):
             return rc
         return wrapped_check
     return wrap
+
+
+def state_create_get_table(nameop):
+    """
+    Get the table of a state-creating operation
+    """
+    return nameop['__table__']
+
+def state_create_invariant_tags():
+    """
+    Get a list of state-create invariant tags.
+    """
+    return [
+        '__table__',
+        '__state_create__'
+    ]
+def state_transition_invariant_tags():
+    """
+    Get a list of state-create invariant tags.
+    """
+    return [
+        '__table__',
+        '__state_transition__'
+    ]
+
+def get_state_invariant_tags():
+    """
+    Get the set of state invariant tags for a given opcode
+    """
+    return list(set( state_create_invariant_tags() + state_transition_invariant_tags() ))
