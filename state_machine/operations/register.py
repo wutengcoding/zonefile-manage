@@ -116,3 +116,13 @@ def make_transaction(name, payment_privkey_info, register_addr, consensus_hash, 
                        format='bin')
     return tx
 
+
+@state_create( "name", "name_records", "check_name_collision" )
+def check_register(state_engine, nameop, block_id, checked_ops):
+    """
+    Verify the validity of a registration nameop.
+
+    """
+    name = nameop['name']
+    sender = nameop['sender']
+

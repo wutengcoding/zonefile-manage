@@ -9,7 +9,7 @@ import copy
 
 from config import *
 
-from register import make_transaction as make_tx_name_register
+from register import make_transaction as make_tx_name_register, check_register as check_register
 
 
 log = get_logger("operations.__init__")
@@ -22,6 +22,15 @@ SERIALIZE_FIELDS = {
     "NAME_REVOKE": revoke.FIELDS
 }
 
+# CHECK_METHODS = {
+#     "NAME_REGISTER": check_register,
+#     "NAME_UPDATE": check_update,
+#     "NAME_TRANSFER": check_transfer,
+#     "NAME_REVOKE": check_revoke,
+# }
+CHECK_METHODS = {
+     "NAME_REGISTER": check_register
+}
 
 
 def op_check(state_engine, nameop, block_id, checked_ops):

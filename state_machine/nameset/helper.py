@@ -14,14 +14,6 @@ EXTRACT_METHODS = {
 }
 
 
-CHECK_METHODS = {
-    "NAME_REGISTER": check_registration,
-    "NAME_UPDATE": check_update,
-    "NAME_TRANSFER": check_transfer,
-    "NAME_REVOKE": check_revoke,
-}
-
-
 def op_extract( op_name, data, senders, inputs, outputs, block_id, vtxindex, txid):
 
     """
