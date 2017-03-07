@@ -5,7 +5,7 @@ import indexer
 from db import *
 from config import *
 from state_machine.operations import *
-
+from state_machine.nameset import *
 DISPOSITION_RO = "readonly"
 DISPOSITION_RW = "readwrite"
 log = get_logger("namedb")
@@ -34,6 +34,7 @@ class ZonefileManageDB(indexer.StateEngine):
         else:
             self.db = namedb_create( db_filename )
 
+        self.disposition = disposition
         read_only = (disposition == DISPOSITION_RO)
 
         super(ZonefileManageDB, self).__init__( MAGIC_BYTES,
@@ -123,22 +124,13 @@ class ZonefileManageDB(indexer.StateEngine):
             log.error("FATAL: unrecognized op '%s'" % nameop['op'])
             os.abort()
 
-        if opcode in OPCODE_PREORDER_OPS:
-            # preorder
-            op_seq = self.commit_state_preorder(nameop, current_block_number)
-            op_seq_type_str = "state_preorder"
-
-        elif opcode in OPCODE_CREATION_OPS:
+        if opcode in OPCODE_NAME_STATE_CREATIONS:
             # creation
-            history_id_key = state_create_get_history_id_key(nameop)
-            history_id = nameop[history_id_key]
             op_seq = self.commit_state_create(nameop, current_block_number)
             op_seq_type_str = "state_create"
 
-        elif opcode in OPCODE_TRANSITION_OPS:
+        elif opcode in OPCODE_NAME_STATE_TRANSITIONS:
             # transition
-            history_id_key = state_transition_get_history_id_key(nameop)
-            history_id = nameop[history_id_key]
             op_seq = self.commit_state_transition(nameop, current_block_number)
             op_seq_type_str = "state_transition"
 
@@ -183,6 +175,43 @@ class ZonefileManageDB(indexer.StateEngine):
         """
 
         self.db.commit()
+
+
+
+    def commit_state_create(self, nameop, current_block_number):
+        # have to have read-write disposition
+        if self.disposition != DISPOSITION_RW:
+            log.error("FATAL: borrowing violation: not a read-write connection")
+            traceback.print_stack()
+            os.abort()
+
+        cur = self.db.cursor()
+        opcode = nameop.get('opcode', None)
+
+        log.info('nameop is %s' % nameop)
+
+        table = state_create_get_table(nameop)
+        # create from preorder
+        rc = namedb_state_create(cur, opcode, nameop,
+                                 current_block_number, nameop['vtxindex'], nameop['txid'],table)
+
+        if not rc:
+            self.db.rollback()
+            os.abort()
+
+        self.db.commit()
+
+
+    def commit_state_transition(self, nameop, current_block_number):
+        # have to have read-write disposition
+        if self.disposition != DISPOSITION_RW:
+            log.error("FATAL: borrowing violation: not a read-write connection")
+            traceback.print_stack()
+            os.abort()
+
+        cur = self.db.cursor()
+        opcode = nameop.get('opcode', None)
+
 
     @classmethod
     def calculate_block_ops_hash(cls, db_state, block_id):
