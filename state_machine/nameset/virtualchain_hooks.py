@@ -1,7 +1,6 @@
-from config import get_logger
+from config import *
 from namedb import *
 import virtualchain
-import config
 import os
 import sys
 from state_machine.operations import *
@@ -101,7 +100,9 @@ def db_commit(block_id, op, op_data, txid, vtxindex, db_state=None):
                 assert op_data['vtxindex'] == vtxindex, "BUG: vtxindex mismatch"
                 # opcode = op_get_opcode_name( op_data['op'] )
                 opcode = op_data.get('opcode', None)
-
+                log.info('opcode is %s' % opcode)
+                assert opcode in  OPCODE_NAME_STATE_CREATIONS + OPCODE_NAME_STATE_TRANSITIONS \
+                    "BUG: uncategorized opcode '%s'" % opcode
             except Exception, e:
                 log.exception(e)
                 log.error("FATAL: failed to commit operation")
