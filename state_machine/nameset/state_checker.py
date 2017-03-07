@@ -1,5 +1,5 @@
 from config import get_logger
-
+import sys
 log = get_logger("state_checker")
 
 def state_check_collisions(state_engine, nameop, history_id_key, block_id, checked_ops, collision_checker):

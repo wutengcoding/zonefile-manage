@@ -77,10 +77,27 @@ class ZonefileManageDB(indexer.StateEngine):
 
         shutil.copyfile(self.get_db_path(), path)
 
+    def get_name(self, name, lastblock=None, inclued_expired=False):
+        if lastblock is None:
+            lastblock = self.lastblock
 
+        cur = self.db.cursor()
+        name_rec = namedb_get_name(cur, name, lastblock, inclued_expired = inclued_expired)
+        return name_rec
 
     def get_db_path(self):
         return self.db_filename
+
+    def is_name_registered(self, name):
+        name_rec = self.get_name(name)
+        if name_rec is None:
+            return False
+
+        if name_rec['revoked']:
+            return False
+        return True
+
+
 
     def commit_operation(self, nameop, current_block_number):
         """

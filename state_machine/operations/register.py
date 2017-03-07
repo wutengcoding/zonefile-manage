@@ -121,5 +121,9 @@ def check_register(state_engine, nameop, block_id, checked_ops):
 
     """
     name = nameop['name']
-    sender = nameop['sender']
+    if state_engine.is_name_registered(name):
+        return False
+    else:
+        return True
+
 

@@ -112,3 +112,19 @@ def namedb_format_query( query, values ):
     """
 
     return "".join( ["%s %s" % (frag, "'%s'" % val if type(val) in [str, unicode] else val) for (frag, val) in zip(query.split("?"), values + ("",))] )
+
+
+
+def namedb_get_name(cur, name, current_block, include_expired=False, include_history=False):
+    select_query = "SELECT * FROM name_records WHERE NAME = ?;"
+    args = (name,)
+    name_rows = namedb_query_execute(cur, select_query, args)
+    name_row = name_rows.fetchone()
+
+    if name_row is None:
+        return None
+
+    name_rec = {}
+    name_rec.update(name_row)
+    return name_rec
+
