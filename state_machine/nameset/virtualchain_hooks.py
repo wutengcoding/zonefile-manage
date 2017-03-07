@@ -5,7 +5,6 @@ import config
 import os
 import sys
 from state_machine.operations import *
-from helper import *
 log = get_logger("virtualchain_hooks")
 
 DISPOSITION_RO = "readonly"

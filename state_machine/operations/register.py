@@ -1,12 +1,10 @@
-from state_machine.nameset import *
-from state_machine.script import *
-from state_machine.b40 import *
-import virtualchain
-from pybitcoin import embed_data_in_blockchain, serialize_transaction, \
-    serialize_sign_and_broadcast, make_op_return_script, \
-    make_pay_to_address_script, hex_hash160, make_op_return_tx
+from pybitcoin import make_op_return_tx
 
+import virtualchain
 from config import *
+from state_machine.nameset import *
+from state_machine.nameset.state_checker import state_create
+from state_machine.script import *
 
 FIELDS = NAMEREC_FIELDS
 
@@ -115,7 +113,6 @@ def make_transaction(name, payment_privkey_info, register_addr, consensus_hash, 
     tx = make_op_return_tx(data, virtualchain.BitcoinPrivateKey(payment_privkey_info), zonefilemanage_client, fee=10000,
                        format='bin')
     return tx
-
 
 @state_create( "name", "name_records", "check_name_collision" )
 def check_register(state_engine, nameop, block_id, checked_ops):

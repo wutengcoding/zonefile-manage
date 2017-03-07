@@ -6,7 +6,6 @@ from db import *
 from config import *
 from state_machine.operations import *
 
-
 DISPOSITION_RO = "readonly"
 DISPOSITION_RW = "readwrite"
 log = get_logger("namedb")
