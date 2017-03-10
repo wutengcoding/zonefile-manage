@@ -456,8 +456,6 @@ class BlockchainDownloader( BitcoinBasicClient ):
             output_info = self.parse_tx_output(i, outp)
             txdata['vout'].append(output_info)
 
-        txdata['senders'] = [None] * len(txdata['vin'])
-
         return txdata
 
     def parse_tx_output(self, i, outp):
@@ -487,7 +485,6 @@ class BlockchainDownloader( BitcoinBasicClient ):
                 "asm": bits.tx_script_to_asm(scriptSig)
             }
         }
-        log.info("Parsed input is %s" % ret)
         return ret
 
     def fetch_sender_txs(self):

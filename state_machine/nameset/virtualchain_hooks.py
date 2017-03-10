@@ -44,9 +44,6 @@ def db_parse(block_id, txid, vtxindex, op, data, senders, inputs, outputs, db_st
     """
     Required by the state engine
     """
-    # basic sanity check
-    if len(senders) == 0:
-        raise Exception("No sender given")
 
     try:
         opcode = op_get_opcode_name(op)
