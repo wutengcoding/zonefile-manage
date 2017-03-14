@@ -79,6 +79,8 @@ OPCODE_NAME_STATE_TRANSITIONS = [
 
 bitcoin_regtest_opts = None
 
+RPC_SERVER_PORT = 16264
+
 NAMEREC_FIELDS = [
     'name',  # the name itself
     'value_hash',  # the hash of the name's associated profile
@@ -281,3 +283,6 @@ def is_running():
     """
     global running
     return running
+
+def get_p2p_vote_hosts():
+    return ['localhost']

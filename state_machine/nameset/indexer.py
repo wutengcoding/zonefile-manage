@@ -354,7 +354,7 @@ class StateEngine(object):
                             continue
 
             else:
-                log.info("Reject block_id : %s" % block_id)
+                log.error("Reject block_id : %s" % block_id)
 
         # final commit
         # the implementation has a chance here to feed any extra data into the consensus hash with this call

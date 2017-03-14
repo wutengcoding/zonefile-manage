@@ -25,7 +25,6 @@ CREATE TABLE name_records( name STRING NOT NULL,
                            vtxindex INT NOT NULL,
                            consensus TEXT,
                            revoked INT,
-                           --primary key includes block number, so an expired name can be re-registered
                            PRIMARY KEY(name, block_number)
                            );
 
