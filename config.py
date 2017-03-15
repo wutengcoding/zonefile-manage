@@ -1,5 +1,6 @@
 import os
 import logging
+from copy import deepcopy
 
 import pybitcoin
 
@@ -286,5 +287,30 @@ def is_running():
     global running
     return running
 
+pri_ip2pub_ip = {
+    'ip-172-31-31-120': '52.34.154.228',
+    'ip-172.31.16.128': '52.88.127.158',
+    'ip-172.31.29.232': '52.11.126.50'
+}
+
+
 def get_p2p_hosts():
-    return ['172.31.31.120', '172.31.29.232', '172.31.16.128']
+    return ['52.34.154.228', '52.11.126.50', '52.88.127.158']
+
+def get_previous_ips():
+    my_ip = get_my_public_ip()
+    hosts = get_p2p_hosts()
+    newhosts = []
+    for h in hosts:
+        if h != my_ip:
+            newhosts.append(h)
+    return newhosts
+
+def get_my_public_ip():
+    import socket
+    hostname = socket.gethostname()
+    if hostname in pri_ip2pub_ip.keys():
+        return pri_ip2pub_ip[hostname]
+    else:
+        raise Exception("hostname error")
+

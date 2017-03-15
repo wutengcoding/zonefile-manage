@@ -36,7 +36,7 @@ parent_dir = os.path.abspath(current_dir + "/../")
 
 sys.path.insert(0, parent_dir)
 
-from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts
+from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts, get_previous_ips
 from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
@@ -254,15 +254,26 @@ def bitcoind_regtest_reset():
         except JSONRPCException:
             pass
 
-    #generate 250 blocks and confirm them
-    bitcoind = connect_bitcoind_impl( opts )
+    if is_main_worker():
 
-    res = bitcoind.generate(TEST_FIRST_BLOCK_HEIGHT - 1)
-    if len(res) != TEST_FIRST_BLOCK_HEIGHT - 1:
-        log.error("Did not generate %s blocks" % TEST_FIRST_BLOCK_HEIGHT - 1)
-        return False
-    log.info("bitcoind -regtest is ready")
-    return True
+        #generate 250 blocks and confirm them
+        bitcoind = connect_bitcoind_impl( opts )
+
+        res = bitcoind.generate(TEST_FIRST_BLOCK_HEIGHT - 1)
+        if len(res) != TEST_FIRST_BLOCK_HEIGHT - 1:
+            log.error("Did not generate %s blocks" % TEST_FIRST_BLOCK_HEIGHT - 1)
+            return False
+        log.info("bitcoind -regtest is ready")
+
+    else:
+        bitcoind = connect_bitcoind_impl(opts)
+        p2p_port = 18444
+        otherips = get_previous_ips()
+        for ip in otherips:
+            bitcoind.addnode("%s:%s" % (ip,p2p_port), 'onetry')
+            log.debug("addnode for %s" % ip)
+
+
 
 def bitcoion_regtest_fill_wallets( wallets, default_payment_wallet=None):
     """
@@ -413,9 +424,7 @@ def run_zonefilemanage():
 
     bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
 
-    import socket
-    hostname = socket.gethostname()
-    if hostname == 'ip-172-31-31-120':
+    if is_main_worker():
         log.info("fill up the default wallet")
         # set up the default payment wallet
         default_payment_wallet = MultisigWallet(2, '5JYAj69z2GuFAZHrkhRuBKoCmKh6GcPXgcw9pbH8e8J2pu2RU9z',
@@ -464,6 +473,10 @@ def run_zonefilemanage():
             except:
                 break
 
+def is_main_worker():
+    import socket
+    hostname = socket.gethostname()
+    return hostname == 'ip-172-31-31-120'
 
 
 if __name__ == '__main__':
