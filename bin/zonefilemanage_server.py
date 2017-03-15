@@ -382,6 +382,16 @@ def run_zonefilemanage():
 
 
     working_dir = "/tmp/zonefilemanage"
+
+    # errase prior state
+    if os.path.exists(working_dir):
+        log.debug("Remove %s " % working_dir)
+        shutil.rmtree(working_dir)
+
+
+    if not os.path.exists(working_dir):
+        os.makedirs(working_dir)
+
     # export to test
     os.environ["VIRTUALCHAIN_WORKING_DIR"] = working_dir
 
