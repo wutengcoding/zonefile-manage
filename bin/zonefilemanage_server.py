@@ -406,10 +406,6 @@ def run_zonefilemanage():
     db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
     log.info("Connect to the bitcoind ")
-    bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
-    working_dir = get_working_dir()
-
-    utxo_opts = {}
 
     # Start the pinger
     pinger = Pinger()
@@ -428,6 +424,30 @@ def run_zonefilemanage():
 
         # load wallets
         bitcoion_regtest_fill_wallets(wallets, default_payment_wallet=default_payment_wallet)
+
+    else:
+        # Watch out for wallets
+        for wallet in wallets:
+
+            testnet_wif = wallet.privkey
+            if not testnet_wif.startswith("c"):
+                testnet_wif = virtualchain.BitcoinPrivateKey(testnet_wif).to_wif()
+
+            bitcoind.importprivkey(testnet_wif, "")
+
+            addr = virtualchain.BitcoinPublicKey(wallet.pubkey_hex).address()
+            log.info("Watch out for %s" % (addr))
+
+        for wallet in wallets:
+            addr = get_wallet_addr(wallet)
+            unspents = bitcoind.listunspent(0, 200000, [addr])
+
+            SATOSHIS_PER_COIN = 10 ** 8
+            value = sum([int(round(s["amount"] * SATOSHIS_PER_COIN)) for s in unspents])
+
+            print >> sys.stderr, "Address %s loaded with %s satoshis" % (addr, value)
+
+
 
     db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
