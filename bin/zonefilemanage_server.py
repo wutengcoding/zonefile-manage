@@ -29,20 +29,29 @@ if os.environ.get("ZONEFILEMANAGE_STORAGE", None) is not None:
     ZONEFILEMANAGE_STORAGE_DRIVERS = os.environ.get("ZONEFILEMANAGE_STORAGE")
 
 BITCOIN_DIR = "/tmp/bitcoin-regtest"
-
+REINDEX_FREQUENCY = 5
 # Hack around the absolute path
 current_dir = os.path.abspath(os.path.dirname(__file__))
 parent_dir = os.path.abspath(current_dir + "/../")
 
 sys.path.insert(0, parent_dir)
 
-
 from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts
 from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
-import testlib
+from integration_test.testlib import *
 from state_machine import nameset as state_engine
+
+wallets = [
+    #prvate key wif
+    Wallet( "5JesPiN68qt44Hc2nT8qmyZ1JDwHebfoh9KQ52Lazb1m1LaKNj9", 100000000000 ),
+    Wallet( "5KHqsiU9qa77frZb6hQy9ocV7Sus9RWJcQGYYBJJBb2Efj1o77e", 100000000000 ),
+    Wallet( "5Kg5kJbQHvk1B64rJniEmgbD83FpZpbw2RjdAZEzTefs9ihN3Bz", 100000000000 ),
+    Wallet( "5JuVsoS9NauksSkqEjbUZxWwgGDQbMwPsEfoRBSpLpgDX1RtLX7", 5500 ),
+    Wallet( "5KEpiSRr1BrT8vRD7LKGCEmudokTh1iMHbiThMQpLdwBwhDJB1T", 5500 )
+]
+
 
 log = get_logger("ZONEFILEMANAGE")
 
@@ -342,25 +351,6 @@ def bitcoin_regtest_connect( opts, reset=False):
     bitcoind = connect_bitcoind_impl( opts )
     return bitcoind
 
-def sync_virtualchain_upcall(zonefilemanage_opts, need_db_refresh):
-    """
-    Upcall from the test scenario to synchronize virtualchain
-    """
-    bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
-    height = bitcoind.getblockcount()
-
-    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
-    testlib.set_state_engine(db)
-
-    if need_db_refresh:
-        pass
-
-    old_lastblock = db.lastblock
-
-    log.debug("Sync virtualchain up to %s " % height)
-    virtualchain.sync_virtualchain(bitcoin_regtest_opts(), height, db)
-
-
 
 
 def bitcoin_regtest_next_block():
@@ -375,70 +365,6 @@ def bitcoin_regtest_next_block():
 
 
 
-def run_scenario( scenario, config_file, client_config_file, interactive = False, blocktime = 10 ):
-    """
-    * set up the virtualchain to use mock UTXO provider and mock bitcoin blockchain
-    * seed it with the intial value in the wallet
-    * set the intial consensus hash
-    * start the api server
-    * run the scenario method
-    * run the check method
-    """
-
-    virtualchain_working_dir = os.environ["VIRTUALCHAIN_WORKING_DIR"]
-
-    spv_header_path = os.path.join(virtualchain_working_dir, "spv_headers.dat")
-    virtualchain.setup_virtualchain( state_engine )
-
-    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
-
-    log.info("Connect to the bitcoind ")
-    bitcoind = bitcoin_regtest_connect( bitcoin_regtest_opts() )
-    working_dir = get_working_dir()
-
-    utxo_opts = {}
-
-    # Start the pinger
-    pinger = Pinger()
-    pinger.start()
-
-
-    #set up the environment
-    testlib.set_utxo_opts(utxo_opts)
-    testlib.set_bitcoind(bitcoind)
-    testlib.set_state_engine(db)
-
-
-    test_env = {
-        "sync_virtualchain_upcall": lambda: sync_virtualchain_upcall(zonefilemanage_opts=None, need_db_refresh=False),
-        "next_block_upcall": bitcoin_regtest_next_block,
-        "working_dir": working_dir,
-        "bitcoind": bitcoind,
-        "bitcoind_opts": bitcoin_regtest_opts(),
-        "spv_header_path": spv_header_path
-    }
-
-
-    # Sync initial utxos
-    testlib.next_block( **test_env )
-
-    # Load the scenario into the mock blockchain and mock utxo provider
-    try:
-        rc = scenario.scenario(scenario.wallets, **test_env)
-    except Exception, e:
-        log.exception(e)
-        traceback.print_exc()
-
-    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
-    testlib.set_state_engine(db)
-
-    try:
-        scenario.check(db)
-    except Exception, e:
-        log.exception(e)
-        traceback.print_exc()
-
-
 def parse_args( argv ):
     """
     Parse argv to get the block time, scenario, working dir, etc
@@ -449,61 +375,69 @@ def parse_args( argv ):
     args, _  = parser.parse_known_args()
     return args
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print >> sys.stderr, "Usage: [scenario_module]"
-        sys.exit(1)
-
-    args = parse_args(sys.argv)
-
-    print args
-    interactive = False
-    blocktime = 10
-    working_dir = None
-    scenario_module = args.scenario_module
-
-    if hasattr(args, "blocktime") and args.blocktime is not None:
-        interactive = True
-        blocktime = args.blocktime
-
-    if hasattr(args, "working_dir") and args.working_dir is not None:
-        working_dir = args.working_dir
-
-    else:
-        working_dir = "/tmp/zonefilemanage-run-scenario.%s" % scenario_module
-
-        # errase prior state
-        if os.path.exists(working_dir):
-            log.debug("Remove %s " % working_dir)
-            shutil.rmtree(working_dir)
-
-    if not os.path.exists(working_dir):
-        os.makedirs(working_dir)
 
 
-    config_file = None
 
+def run_zonefilemanage():
+
+
+    working_dir = "/tmp/zonefilemanage"
     # export to test
     os.environ["VIRTUALCHAIN_WORKING_DIR"] = working_dir
 
-    #load up the scenario
-    scenario = load_scenario( scenario_module )
-    """if scenario is None:
-        print "Failed to load '%s'" % sys.argv[1]
-        sys.exit(1)
-    """
-    #set up bitcoind
+    # set up bitcoind
     bitcoind_regtest_reset()
 
-    #set up the default payment wallet
-    default_payment_wallet = testlib.MultisigWallet( 2, '5JYAj69z2GuFAZHrkhRuBKoCmKh6GcPXgcw9pbH8e8J2pu2RU9z', '5Kfg4xkZ1gGN5ozgDZ37Mn3EH9pXSuWZnQt1pzax4cLax8PetNs', '5JXB7rNxZa8yQtpuKtwy1nWUUTgdDEYTDmaEqQvKKC8HCWs64bL' )
+    virtualchain_working_dir = os.environ["VIRTUALCHAIN_WORKING_DIR"]
 
-    #load wallets
-    bitcoion_regtest_fill_wallets( scenario.wallets, default_payment_wallet=default_payment_wallet)
-    testlib.set_default_payment_wallet(default_payment_wallet)
+    spv_header_path = os.path.join(virtualchain_working_dir, "spv_headers.dat")
+    virtualchain.setup_virtualchain(state_engine)
+
+    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
+
+    log.info("Connect to the bitcoind ")
+    bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
+    working_dir = get_working_dir()
+
+    utxo_opts = {}
+
+    # Start the pinger
+    pinger = Pinger()
+    pinger.start()
+
+    bitcoind = bitcoin_regtest_connect(bitcoin_regtest_opts())
+
+    import socket
+    hostname = socket.gethostname()
+    if hostname == 'ip-172-31-31-120':
+        log.info("fill up the default wallet")
+        # set up the default payment wallet
+        default_payment_wallet = MultisigWallet(2, '5JYAj69z2GuFAZHrkhRuBKoCmKh6GcPXgcw9pbH8e8J2pu2RU9z',
+                                                        '5Kfg4xkZ1gGN5ozgDZ37Mn3EH9pXSuWZnQt1pzax4cLax8PetNs',
+                                                        '5JXB7rNxZa8yQtpuKtwy1nWUUTgdDEYTDmaEqQvKKC8HCWs64bL')
+
+        # load wallets
+        bitcoion_regtest_fill_wallets(wallets, default_payment_wallet=default_payment_wallet)
+
+    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
+
+    while True:
+        height = bitcoind.getblockcount()
+        log.debug("Sync virtualchain up to %s " % height)
+        virtualchain.sync_virtualchain(bitcoin_regtest_opts(), height, db)
+
+        # wait for the next block
+        deadline = time.time() + REINDEX_FREQUENCY
+        while time.time() < deadline:
+            try:
+                time.sleep(1)
+            except:
+                break
 
 
 
+if __name__ == '__main__':
 
-    # run the test
-    run_scenario(scenario, config_file, None, interactive=False, blocktime=blocktime)
+    run_zonefilemanage()
+
+

@@ -114,6 +114,8 @@ LENGTHS = {
 }
 
 
+
+
 def get_logger(name="ZONEFILEMANAGE"):
     """
     Get virtualchain's logger
@@ -284,5 +286,5 @@ def is_running():
     global running
     return running
 
-def get_p2p_vote_hosts():
-    return ['localhost']
+def get_p2p_hosts():
+    return ['172.31.31.120', '172.31.29.232', '172.31.16.128']
