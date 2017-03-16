@@ -13,8 +13,7 @@ consensus = "17ac43c1d8549c3181b200f1bf97eb7d"
 def scenario( wallets, **kw ):
     zonefilemanage_name_register('foo', wallets[1].addr, wallets[0].privkey)
     next_block(**kw)
-    zonefilemanage_name_register('foo', wallets[1].addr, wallets[0].privkey)
-    next_block(**kw)
+
     print 'scenario successfully'
 
 def check( state_engine ):

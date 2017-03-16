@@ -110,7 +110,7 @@ def parse(bin_payload):
 def make_transaction(name, payment_privkey_info, register_addr, consensus_hash, payment_addr, zonefilemanage_client):
 
     data = build(name)
-    tx = make_op_return_tx(data, virtualchain.BitcoinPrivateKey(payment_privkey_info), zonefilemanage_client, fee=0,
+    tx = make_op_return_tx(data, virtualchain.BitcoinPrivateKey(payment_privkey_info), zonefilemanage_client, fee=100000,
                        format='bin')
     return tx
 
