@@ -8,6 +8,7 @@ import socket
 import time
 import threading
 import traceback
+import commands
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
@@ -462,7 +463,19 @@ def run_zonefilemanage():
 
     db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
-    set_global_db(db)
+
+    # Kill the pid for use this port
+    return_code, output = commands.getstatusoutput("netstat -apn | grep %s |  grep python| awk '{print $7}'" % RPC_SERVER_PORT)
+    if 'python' in output:
+        import re
+        pattern = re.compile("(\d+)/python")
+        match = pattern.search(output)
+        if match:
+            port = match.group(1)
+        rc = os.system("kill -9 %s" % port)
+        if rc != 0:
+            log.exception("force kill failed")
+            os.abort()
 
     # Start up the rpc server
     server = ZonefileManageRPCServer(port = RPC_SERVER_PORT)
@@ -535,6 +548,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
     def __init__(self, host='0.0.0.0', port = RPC_SERVER_PORT, handler = SimpleXMLRPCRequestHandler):
         SimpleXMLRPCServer.__init__(self,(host, port), handler, allow_none=True)
         log.info("ZonefileManageRPC listening on (%s, %s)" % (host, port))
+        self.db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
         # Register method
         for attr in dir(self):
             if attr.startswith("rpc_"):
@@ -568,14 +582,17 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
 
         log.info('Get the register rpc for %s' % name)
         resp = zonefilemanage_name_register(name, wallets[1].addr, wallets[0].privkey)
+        bitcoin_regtest_next_block()
+
         return resp
 
 
 
     def rpc_get_name(self, name):
 
-        db_inst = get_global_db()
-        name_record = db_inst.get_name(name)
+
+        log.info('Get the query rpc for %s' % name)
+        name_record = self.db.get_name(name)
         return name_record
 
     def collect_vote(self, name):

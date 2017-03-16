@@ -40,6 +40,13 @@ def get_db_state( disposition = DISPOSITION_RO ):
     db_inst = ZonefileManageDB(db_filename, disposition)
     return db_inst
 
+
+def get_readonly_db_state(disposition = DISPOSITION_RO):
+    impl = config.get_implementation()
+    db_filename = config.get_db_filename(impl=impl)
+    db_inst = ZonefileManageDB(db_filename, disposition)
+    return db_inst
+
 def db_parse(block_id, txid, vtxindex, op, data, senders, inputs, outputs, db_state=None):
     """
     Required by the state engine

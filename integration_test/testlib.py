@@ -112,6 +112,7 @@ def zonefilemanage_name_register(name, register_addr, privatekey, consensus_hash
     """
     Register a name
     """
+    log.info('register a name %s' % name)
     test_proxy = make_proxy()
     name_service.set_default_proxy(test_proxy)
 
@@ -121,10 +122,6 @@ def zonefilemanage_name_register(name, register_addr, privatekey, consensus_hash
     resp = name_service.do_name_register(name,  privatekey, register_addr,
                                                    test_proxy, test_proxy, consensus_hash=consensus_hash,
                                                    proxy=test_proxy)
-    # Generate a block
-    log.info("Generate a block")
-    bitcoind = get_bitcoind_connection()
-    bitcoind.generate(1)
     return resp
 
 def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None, safety_checks = False):
