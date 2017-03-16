@@ -463,10 +463,14 @@ def run_zonefilemanage():
 
     db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
+<<<<<<< HEAD
     # Kill the pid for use this port
     return_code, output = commands.getstatusoutput("netstat -apn | grep %s | awk '{print $7}'" % RPC_SERVER_PORT)
     if 'python' in output:
         os.system("kill -9 %s" % output[:output.find('python')-1])
+=======
+    set_global_db(db)
+>>>>>>> f641a826cd89fbe2431694fed2e43495a160da66
 
     # Start up the rpc server
     server = ZonefileManageRPCServer(port = RPC_SERVER_PORT)
