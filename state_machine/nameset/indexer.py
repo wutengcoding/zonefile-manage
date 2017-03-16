@@ -650,53 +650,53 @@ class StateEngine(object):
             traceback.print_stack()
             os.abort()
 
-        rc = self.impl.db_save(block_id, consensus_hash, pending_ops, tmp_db_filename, db_state=self.state)
-        if not rc:
-            # failed to save
-            # this is a fatal error
-            log.error("FATAL: Implementation failed to save at block %s to %s" % (block_id, tmp_db_filename))
+        # rc = self.impl.db_save(block_id, consensus_hash, pending_ops, tmp_db_filename, db_state=self.state)
+        # if not rc:
+        #     # failed to save
+        #     # this is a fatal error
+        #     log.error("FATAL: Implementation failed to save at block %s to %s" % (block_id, tmp_db_filename))
+        #
+        #     try:
+        #         os.unlink(tmp_lastblock_filename)
+        #     except:
+        #         pass
+        #
+        #     try:
+        #         os.unlink(tmp_snapshot_filename)
+        #     except:
+        #         pass
+        #
+        #     traceback.print_stack()
+        #     os.abort()
 
-            try:
-                os.unlink(tmp_lastblock_filename)
-            except:
-                pass
+        # rc = self.commit(backup=backup)
+        # if not rc:
+        #     log.error("Failed to commit data at block %s.  Rolling back and aborting." % block_id)
+        #
+        #     self.rollback()
+        #     traceback.print_stack()
+        #     os.abort()
+        #
+        # else:
+        #     self.lastblock = block_id
+        #
+        #     # # make new backups
+        #     # self.make_backups(block_id)
+        #     #
+        #     # # clear out old backups
+        #     # self.clear_old_backups(block_id)
+        #
+        # continue_indexing = True
+        # if hasattr(self.impl, "db_continue"):
+        #     try:
+        #         continue_indexing = self.impl.db_continue(block_id, consensus_hash)
+        #     except Exception, e:
+        #         log.exception(e)
+        #         traceback.print_stack()
+        #         log.error("FATAL: implementation failed db_continue")
+        #         os.abort()
 
-            try:
-                os.unlink(tmp_snapshot_filename)
-            except:
-                pass
-
-            traceback.print_stack()
-            os.abort()
-
-        rc = self.commit(backup=backup)
-        if not rc:
-            log.error("Failed to commit data at block %s.  Rolling back and aborting." % block_id)
-
-            self.rollback()
-            traceback.print_stack()
-            os.abort()
-
-        else:
-            self.lastblock = block_id
-
-            # # make new backups
-            # self.make_backups(block_id)
-            #
-            # # clear out old backups
-            # self.clear_old_backups(block_id)
-
-        continue_indexing = True
-        if hasattr(self.impl, "db_continue"):
-            try:
-                continue_indexing = self.impl.db_continue(block_id, consensus_hash)
-            except Exception, e:
-                log.exception(e)
-                traceback.print_stack()
-                log.error("FATAL: implementation failed db_continue")
-                os.abort()
-
-        return continue_indexing
+        return True
 
     def process_block(self, block_id, ops, backup=False, expected_snapshots=None):
 
