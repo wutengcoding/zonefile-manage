@@ -9,6 +9,7 @@ import pybitcoin
 
 from config import get_logger, get_bitcoin_regtest_opts
 import name_service
+from blockchain.session import get_bitcoind_connection
 log = get_logger("testlib")
 
 snapshots_dir = None
@@ -122,7 +123,8 @@ def zonefilemanage_name_register(name, register_addr, privatekey, consensus_hash
                                                    proxy=test_proxy)
     # Generate a block
     log.info("Generate a block")
-    test_proxy.generate(1)
+    bitcoind = get_bitcoind_connection()
+    bitcoind.generate(1)
     return resp
 
 def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None, safety_checks = False):

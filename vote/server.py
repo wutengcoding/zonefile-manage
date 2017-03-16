@@ -10,7 +10,7 @@ class ZonefileManageRPCServer(threading.Thread, object):
     """
     RPC Server
     """
-    def __init__(self, host, port):
+    def __init__(self, host='0.0.0.0', port=RPC_SERVER_PORT):
         super(ZonefileManageRPCServer, self).__init__()
         self.rpc_server = None
         self.host = host
@@ -42,7 +42,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
     """
     ZonefileManage RPC server
     """
-    def __init__(self, host='localhost', port = RPC_SERVER_PORT, handler = SimpleXMLRPCRequestHandler):
+    def __init__(self, host='0.0.0.0', port = RPC_SERVER_PORT, handler = SimpleXMLRPCRequestHandler):
         SimpleXMLRPCServer.__init__(self,(host, port), handler, allow_none=True)
         log.info("ZonefileManageRPC listening on (%s, %s)" % (host, port))
         # Register method
@@ -70,6 +70,9 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
                 self.vote_poll[name] += 1
             else:
                 self.vote_poll[name] = 1
+
+    def rpc_ping(self):
+        return 'hello, world'
 
     def collect_vote(self, name):
         """

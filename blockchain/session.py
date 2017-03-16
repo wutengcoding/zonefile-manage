@@ -1,6 +1,9 @@
 from config import get_logger
 from autoproxy import AuthServiceProxy
 log = get_logger()
+
+bitcoind_conn = None
+
 def connect_bitcoind_impl( bitcoind_opts ):
 
 
@@ -53,4 +56,14 @@ def create_bitcoind_connection( rpc_username, rpc_password, server, port, use_ht
         "bitcoind_timeout": timeout
     }
     setattr(ret, "opts", bitcoind_opts)
+
+    global  bitcoind_conn
+    if bitcoind_conn is None:
+        bitcoind_conn = ret
     return ret
+
+
+def get_bitcoind_connection():
+    global bitcoind_conn
+    if bitcoind_conn is not None:
+        return bitcoind_conn
