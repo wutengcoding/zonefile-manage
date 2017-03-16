@@ -725,11 +725,11 @@ class StateEngine(object):
                 op_sanitized, op_reserved = self.remove_reserved_keys(new_ops[op][i])
                 sanitized_ops[op].append(op_sanitized)
 
-        rc = self.save(block_id, consensus_hash, sanitized_ops, backup=backup)
-        if not rc:
-            log.debug("Early indexing termination at %s" % block_id)
-
-            return None
+        # rc = self.save(block_id, consensus_hash, sanitized_ops, backup=backup)
+        # if not rc:
+        #     log.debug("Early indexing termination at %s" % block_id)
+        #
+        #     return None
         return consensus_hash
 
 
