@@ -8,6 +8,7 @@ import socket
 import time
 import threading
 import traceback
+from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
 os.environ['ZONEFILEMANAGE_TEST'] = '1'
@@ -36,7 +37,7 @@ parent_dir = os.path.abspath(current_dir + "/../")
 
 sys.path.insert(0, parent_dir)
 
-from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts, get_previous_ips
+from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts, get_previous_ips, RPC_SERVER_PORT
 from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
@@ -52,6 +53,7 @@ wallets = [
     Wallet( "5KEpiSRr1BrT8vRD7LKGCEmudokTh1iMHbiThMQpLdwBwhDJB1T", 5500 )
 ]
 
+db_inst = None
 
 log = get_logger("ZONEFILEMANAGE")
 
@@ -414,7 +416,7 @@ def run_zonefilemanage():
     spv_header_path = os.path.join(virtualchain_working_dir, "spv_headers.dat")
     virtualchain.setup_virtualchain(state_engine)
 
-    db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
+    # db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
     log.info("Connect to the bitcoind ")
 
@@ -460,6 +462,10 @@ def run_zonefilemanage():
 
     db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
+    # Start up the rpc server
+    server = ZonefileManageRPCServer()
+    server.start()
+
     while True:
         height = bitcoind.getblockcount()
         log.debug("Sync virtualchain up to %s " % height)
@@ -478,6 +484,107 @@ def is_main_worker():
     hostname = socket.gethostname()
     return hostname == 'ip-172-31-31-120'
 
+
+def set_global_db(inst):
+    global db_inst
+    if db_inst is None:
+        db_inst = inst
+
+def get_global_db():
+    global db_inst
+    return db_inst
+
+class ZonefileManageRPCServer(threading.Thread, object):
+    """
+    RPC Server
+    """
+    def __init__(self, host, port):
+        super(ZonefileManageRPCServer, self).__init__()
+        self.rpc_server = None
+        self.host = host
+        self.port = port
+
+    def run(self):
+        """
+        Server until asked to stop
+        """
+        self.rpc_server = ZonefileManageRPC(self.host, self.port)
+        self.rpc_server.serve_forever()
+
+    def stop_server(self):
+        """
+        Stop serving
+        """
+        if self.rpc_server is not None:
+            self.rpc_server.shutdown()
+
+    def collect_vote_poll(self, name):
+        return self.rpc_server.collect_vote(name)
+
+
+class SimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
+    rpc_path = ('/RPC2',)
+
+
+class ZonefileManageRPC(SimpleXMLRPCServer):
+    """
+    ZonefileManage RPC server
+    """
+    def __init__(self, host='localhost', port = RPC_SERVER_PORT, handler = SimpleXMLRPCRequestHandler):
+        SimpleXMLRPCServer.__init__(self,(host, port), handler, allow_none=True)
+        log.info("ZonefileManageRPC listening on (%s, %s)" % (host, port))
+        # Register method
+        for attr in dir(self):
+            if attr.startswith("rpc_"):
+                method = getattr(self, attr)
+                if callable(method) or hasattr(method, '__call__'):
+                    self.register_function(method)
+        # Initial the voteing result
+        self.vote_poll = {}
+        self.vote_count = {}
+
+    def rpc_vote_for_name(self, name, poll):
+        try:
+            assert type(poll) is bool
+        except Exception, e:
+            log.exception(e)
+        if name in self.vote_count.keys():
+            self.vote_count[name] += 1
+        else:
+            self.vote_count[name] = 1
+
+        if poll:
+            if name in self.vote_poll.keys():
+                self.vote_poll[name] += 1
+            else:
+                self.vote_poll[name] = 1
+
+    def rpc_register_name(self, name):
+        """
+        RPC method for register a name
+        """
+
+        log.info('Get the register rpc for %s' % name)
+        resp = zonefilemanage_name_register(name, wallets[1].addr, wallets[0].privkey)
+        return resp
+
+
+
+    def rpc_get_name(self, name):
+
+        db_inst = get_global_db()
+        name_record = db_inst.get_name(name)
+        return name_record
+
+    def collect_vote(self, name):
+        """
+        Collect the vote result for a name
+        """
+        try:
+            assert name in self.vote_poll.keys() and name in self.vote_count.keys(), "Collect for invalid name %s" % name
+            return self.vote_poll[name] * 2 > self.vote_count[name]
+        except Exception, e:
+            log.exception(e)
 
 if __name__ == '__main__':
 
