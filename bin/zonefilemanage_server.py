@@ -462,6 +462,8 @@ def run_zonefilemanage():
 
     db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
+    set_global_db(db)
+
     # Start up the rpc server
     server = ZonefileManageRPCServer(port = RPC_SERVER_PORT)
     server.start()
