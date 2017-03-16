@@ -484,7 +484,7 @@ def run_zonefilemanage():
 def is_main_worker():
     import socket
     hostname = socket.gethostname()
-    return hostname == 'ip-172-31-31-120' or 'ubuntu'
+    return hostname == 'ip-172-31-31-120' or hostname == 'ubuntu'
 
 
 def set_global_db(inst):
