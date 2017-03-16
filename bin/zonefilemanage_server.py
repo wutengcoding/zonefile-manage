@@ -463,7 +463,7 @@ def run_zonefilemanage():
     db = state_engine.get_db_state(disposition=state_engine.DISPOSITION_RW)
 
     # Start up the rpc server
-    server = ZonefileManageRPCServer('localhost', RPC_SERVER_PORT)
+    server = ZonefileManageRPCServer(port = RPC_SERVER_PORT)
     server.start()
 
     while True:
@@ -498,7 +498,7 @@ class ZonefileManageRPCServer(threading.Thread, object):
     """
     RPC Server
     """
-    def __init__(self, host, port):
+    def __init__(self, host='0.0.0.0', port=RPC_SERVER_PORT):
         super(ZonefileManageRPCServer, self).__init__()
         self.rpc_server = None
         self.host = host
@@ -530,7 +530,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
     """
     ZonefileManage RPC server
     """
-    def __init__(self, host='localhost', port = RPC_SERVER_PORT, handler = SimpleXMLRPCRequestHandler):
+    def __init__(self, host='0.0.0.0', port = RPC_SERVER_PORT, handler = SimpleXMLRPCRequestHandler):
         SimpleXMLRPCServer.__init__(self,(host, port), handler, allow_none=True)
         log.info("ZonefileManageRPC listening on (%s, %s)" % (host, port))
         # Register method
