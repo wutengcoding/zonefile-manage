@@ -456,6 +456,8 @@ class BlockchainDownloader( BitcoinBasicClient ):
             output_info = self.parse_tx_output(i, outp)
             txdata['vout'].append(output_info)
 
+        txdata['senders'] = [None] * len(txdata['vin'])
+
         return txdata
 
     def parse_tx_output(self, i, outp):
@@ -554,9 +556,35 @@ class BlockchainDownloader( BitcoinBasicClient ):
         Record sender information in our block info
         """
         assert sender_txhash in self.sender_info.keys(), "Missing sender info for %s" % sender_txhash
-        assert nulldata_vin_outpoint in self.sender_info[sender_txhash], "Missing output %s for sender %s" % (nulldata_vin_outpoint, sender_txhash)
+        assert nulldata_vin_outpoint in self.sender_info[sender_txhash], "Missing outpoint %s for sender %s" % (
+        nulldata_vin_outpoint, sender_txhash)
 
         block_hash = self.sender_info[sender_txhash][nulldata_vin_outpoint]['block_hash']
+        relindex = self.sender_info[sender_txhash][nulldata_vin_outpoint]['relindex']
+        relinput_index = self.sender_info[sender_txhash][nulldata_vin_outpoint]['relinput']
+
+        value_in = sender_out_data['value']
+        script_pubkey = sender_out_data['scriptPubKey']['hex']
+        script_type = sender_out_data['scriptPubKey']['type']
+        addresses = sender_out_data['scriptPubKey'].get("addresses", [])
+
+        sender_info = {
+            "amount": value_in,
+            "script_pubkey": script_pubkey,
+            "script_type": script_type,
+            "addresses": addresses,
+            "nulldata_vin_outpoint": nulldata_vin_outpoint,
+            "txid": sender_txhash
+        }
+
+        # debit this tx's total value
+        self.block_info[block_hash]['txns'][relindex]['fee'] += int(value_in * 10 ** 8)
+
+        # remember this sender, but put it in the right place.
+        # senders[i] must correspond to tx['vin'][i]
+        self.block_info[block_hash]['txns'][relindex]['senders'][relinput_index] = sender_info
+
+        return True
 
 
 
