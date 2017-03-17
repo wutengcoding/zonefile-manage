@@ -100,7 +100,7 @@ NAMEREC_FIELDS = [
 LENGTHS = {
     'magic_bytes': 2,
     'opcode': 1,
-    'preorder_name_hash': 20,
+    'name_update': 17,
     'consensus_hash': 16,
     'namelen': 1,
     'name_min': 1,

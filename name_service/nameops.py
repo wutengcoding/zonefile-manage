@@ -39,16 +39,36 @@ def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx
     return resp
 
 
-def do_name_update(name, data_hash, payment_privkey_info):
+def do_name_update(name, data_hash, payment_privkey_info, tx_broadcaster):
     owner_address = get_privkey_info_address(payment_privkey_info)
     # Check ownership
     db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
     records = db.get_name(name)
-    assert type(records) == dict
+
+    if records is None:
+        log.error("No such record for name %s" % name)
+        return {'error': "The name record doesn't exist"}
     if records['recipient_address'] != owner_address:
         log.error("Owner address of %s is not matched, expected %s, but %s" % (name, records['recipient_address'], owner_address))
         return {'error': 'The owner address is not correct'}
-    
+
+    try:
+        signed_tx = name_register_tx(name, payment_privkey_info , data_hash, tx_broadcaster)
+    except ValueError, ve:
+        log.exception(ve)
+        log.error("Failed to create name update tx")
+        return {'error': 'Failed to create name update tx'}
+
+    resp = {}
+
+    try:
+        resp = broadcast_transaction(signed_tx, tx_broadcaster)
+    except Exception, e:
+        log.exception(e)
+        log.error("Failed to sign and broadcast tx")
+        return {'error': 'Failed to sign and broadcast namespace preorder transaction'}
+
+    return resp
 
 def do_name_revoke():
     pass
@@ -62,6 +82,9 @@ def name_register_tx(name, private_key, reveal_address, consensus_hash, payment_
     tx = make_tx_name_register(name, private_key, reveal_address, consensus_hash, payment_address, utxo_client)
     return tx
 
+def name_register_tx(name, private_key, data_hash, tx_broadcaster):
+    tx = make_tx_name_update(name, private_key, data_hash, tx_broadcaster)
+    return tx
 
 def get_name_record(name):
     s = xmlrpclib.ServerProxy('http://%s:%s' % ('0.0.0.0', RPC_SERVER_PORT))

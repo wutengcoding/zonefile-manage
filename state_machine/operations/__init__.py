@@ -10,7 +10,7 @@ import copy
 from config import *
 
 from register import make_transaction as make_tx_name_register, check_register as check_register
-
+from update import make_transaction as make_tx_name_update
 
 log = get_logger("operations.__init__")
 

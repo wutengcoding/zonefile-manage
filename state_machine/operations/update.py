@@ -1,6 +1,7 @@
 from state_machine.nameset import *
 from state_machine.script import *
 from state_machine.b40 import *
+from pybitcoin import make_op_return_tx
 
 from config import *
 
@@ -10,39 +11,46 @@ FIELDS = NAMEREC_FIELDS[:] + [
 ]
 
 
+def make_regular_name(name):
+    assert len(name) < 18, "the length of name is too long"
+    adding_part = ' '.join([''] * (18-len(name)))
+    return '{}{}'.format(name, adding_part)
+
+def build(name, value_hash):
+    """
+    Takes in the name that was preordered, including the namespace ID (but not the id: scheme)
+    Returns a hex string representing up to the maximum-length name's bytes.
+
+    Record format:
+
+    0    2  3                20            39
+    |----|--|----------------|-------------|
+    magic op   name             value_hash
+
+    """
+    name = make_regular_name(name)
+    name_value = name + value_hash
+    readable_script = "NAME_UPDATE %s" % (name_value)
+    script = parse_op(readable_script)
+    packaged_script = add_magic_bytes(script)
+
+    return packaged_script
+def make_transaction(name, payment_privkey_info, value_hash, zonefilemanage_client):
+
+    data = build(name, value_hash)
+    tx = make_op_return_tx(data, virtualchain.BitcoinPrivateKey(payment_privkey_info), zonefilemanage_client, fee=100000,
+                       format='bin')
+    return tx
 
 
 
 def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid ):
     sender_pubkey_hex = None
 
-    try:
-
-        # by construction, the first input comes from the principal
-        # who sent the registration transaction...
-        assert len(senders) > 0
-        assert 'script_pubkey' in senders[0].keys()
-        assert 'addresses' in senders[0].keys()
-
-        sender_script = str(senders[0]['script_pubkey'])
-        sender_address = str(senders[0]['addresses'][0])
-
-        assert sender_script is not None
-        assert sender_address is not None
-
-        if str(senders[0]['script_type']) == 'pubkeyhash':
-            sender_pubkey_hex = get_public_key_hex_from_tx(inputs, sender_address)
-
-    except Exception, e:
-        log.exception(e)
-        raise Exception("Failed to extract")
-
     parsed_payload = parse(payload)
     assert parsed_payload is not None
 
     ret = {
-        "sender": sender_script,
-        "address": sender_address,
         "vtxindex": vtxindex,
         "txid": txid,
         "op": NAME_UPDATE
@@ -62,27 +70,19 @@ def parse(bin_payload):
     NOTE: bin_payload excludes the leading three bytes.
     """
 
-    if len(bin_payload) != LENGTHS['name_consensus_hash'] + LENGTHS['value_hash']:
+    if len(bin_payload) != LENGTHS['name_update'] + LENGTHS['value_hash']:
         log.error("Invalid update length %s" % len(bin_payload))
         return None
 
-    name_consensus_hash_bin = bin_payload[:LENGTHS['name_consensus_hash']]
-    value_hash_bin = bin_payload[LENGTHS['name_consensus_hash']:]
+    name_update = bin_payload[:LENGTHS['name_update']]
+    value_hash = bin_payload[LENGTHS['value_hash']:]
 
-    name_consensus_hash = hexlify(name_consensus_hash_bin)
-    value_hash = hexlify(value_hash_bin)
-
-    try:
-        rc = update_sanity_test(None, name_consensus_hash, value_hash)
-        if not rc:
-            raise Exception("Invalid update data")
-    except Exception, e:
-        log.error("Invalid update data")
-        return None
+    name_update = hexlify(name_update)
+    value_hash = hexlify(value_hash)
 
     return {
         'opcode': 'NAME_UPDATE',
-        'name_consensus_hash': name_consensus_hash,
+        'name_update': name_update.trim(),
         'value_hash': value_hash
     }
 
