@@ -70,11 +70,70 @@ def do_name_update(name, data_hash, payment_privkey_info, tx_broadcaster):
 
     return resp
 
-def do_name_revoke():
-    pass
+def do_name_revoke(name, payment_privkey_info, tx_broadcaster):
+    owner_address = get_privkey_info_address(payment_privkey_info)
+    # Check ownership
+    db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
+    records = db.get_name(name)
 
-def do_name_transfer():
-    pass
+    if records is None:
+        log.error("No such record for name %s" % name)
+        return {'error': "The name record doesn't exist"}
+    if records['recipient_address'] != owner_address:
+        log.error("Owner address of %s is not matched, expected %s, but %s" % (
+        name, records['recipient_address'], owner_address))
+        return {'error': 'The owner address is not correct'}
+
+    try:
+        signed_tx = name_revoke_tx(name, payment_privkey_info, tx_broadcaster)
+    except ValueError, ve:
+        log.exception(ve)
+        log.error("Failed to create name update tx")
+        return {'error': 'Failed to create name update tx'}
+
+    resp = {}
+
+    try:
+        resp = broadcast_transaction(signed_tx, tx_broadcaster)
+    except Exception, e:
+        log.exception(e)
+        log.error("Failed to sign and broadcast tx")
+        return {'error': 'Failed to sign and broadcast namespace preorder transaction'}
+
+    return resp
+
+def do_name_transfer(name, payment_privkey_info, owner_privkey_info):
+    previous_owner_address = get_privkey_info_address(payment_privkey_info)
+
+    # Check name ownership
+    db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
+    records = db.get_name(name)
+
+    if records is None:
+        log.error("No such record for name %s" % name)
+        return {'error': "The name record doesn't exist"}
+    if records['recipient_address'] != previous_owner_address:
+        log.error("Owner address of %s is not matched, expected %s, but %s" % (
+            name, records['recipient_address'], previous_owner_address))
+        return {'error': 'The owner address is not correct'}
+
+    try:
+        signed_tx = name_transfer_tx(name, payment_privkey_info, owner_privkey_info,tx_broadcaster)
+    except ValueError, ve:
+        log.exception(ve)
+        log.error("Failed to create name update tx")
+        return {'error': 'Failed to create name update tx'}
+
+    resp = {}
+
+    try:
+        resp = broadcast_transaction(signed_tx, tx_broadcaster)
+    except Exception, e:
+        log.exception(e)
+        log.error("Failed to sign and broadcast tx")
+        return {'error': 'Failed to sign and broadcast namespace preorder transaction'}
+
+    return resp
 
 
 
@@ -85,6 +144,18 @@ def name_register_tx(name, private_key, reveal_address, consensus_hash, payment_
 def name_update_tx(name, private_key, data_hash, tx_broadcaster):
     tx = make_tx_name_update(name, private_key, data_hash, tx_broadcaster)
     return tx
+
+
+def name_revoke_tx(name, private_key, tx_broadcaster):
+    tx = make_tx_name_revoke(name, private_key, tx_broadcaster)
+    return tx
+
+
+def name_transfer_tx(name, payment_privkey_info, owner_privkey_info, tx_broadcaster):
+    tx = make_tx_name_transfer(name, payment_privkey_info, owner_privkey_info, tx_broadcaster)
+    return tx
+
+
 
 def get_name_record(name):
     s = xmlrpclib.ServerProxy('http://%s:%s' % ('0.0.0.0', RPC_SERVER_PORT))
