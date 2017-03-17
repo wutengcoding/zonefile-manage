@@ -298,13 +298,13 @@ class BlockchainDownloader( BitcoinBasicClient ):
                 log.exception(e)
                 return False
         return True
-        # # Fetch remaining sender transactions
-        # try:
-        #     self.fetch_sender_txs()
-        # except Exception, e:
-        #     log.exception(e)
-        #     return False
-        #
+        # Fetch remaining sender transactions
+        try:
+            self.fetch_sender_txs()
+        except Exception, e:
+            log.exception(e)
+            return False
+
         # try:
         #     self.block_data_sanity_checks()
         # except AssertionError, ae:
