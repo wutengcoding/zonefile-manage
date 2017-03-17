@@ -29,7 +29,8 @@ SERIALIZE_FIELDS = {
 #     "NAME_REVOKE": check_revoke,
 # }
 CHECK_METHODS = {
-     "NAME_REGISTER": check_register
+     "NAME_REGISTER": check_register,
+
 }
 
 

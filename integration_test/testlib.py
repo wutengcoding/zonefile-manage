@@ -132,7 +132,7 @@ def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None,
     test_proxy = make_proxy()
     name_service.set_default_proxy(test_proxy)
 
-    resp = name_service.do_name_update(name, data_hash, privatekey)
+    resp = name_service.do_name_update(name, data_hash, privatekey, test_proxy)
 
     return resp
 

@@ -13,7 +13,7 @@ FIELDS = NAMEREC_FIELDS[:] + [
 
 def make_regular_name(name):
     assert len(name) < 18, "the length of name is too long"
-    adding_part = ' '.join([''] * (18-len(name)))
+    adding_part = '&'.join([''] * (18-len(name)))
     return '{}{}'.format(name, adding_part)
 
 def build(name, value_hash):
@@ -77,12 +77,12 @@ def parse(bin_payload):
     name_update = bin_payload[:LENGTHS['name_update']]
     value_hash = bin_payload[LENGTHS['value_hash']:]
 
-    name_update = hexlify(name_update)
-    value_hash = hexlify(value_hash)
+    # Filter the unnecessary &
+    name_update = name_update[:name_update.find('&')]
 
     return {
         'opcode': 'NAME_UPDATE',
-        'name_update': name_update.trim(),
+        'name_update': name_update,
         'value_hash': value_hash
     }
 
