@@ -2,7 +2,7 @@ from state_machine.nameset import *
 from state_machine.script import *
 from state_machine.b40 import *
 from pybitcoin import make_op_return_tx
-
+from state_machine.nameset.state_checker import state_transition
 from config import *
 
 FIELDS = NAMEREC_FIELDS[:] + [
@@ -13,7 +13,7 @@ FIELDS = NAMEREC_FIELDS[:] + [
 
 def make_regular_name(name):
     assert len(name) < 18, "the length of name is too long"
-    adding_part = ' '.join([''] * (18-len(name)))
+    adding_part = '&'.join([''] * (18-len(name)))
     return '{}{}'.format(name, adding_part)
 
 def build(name, value_hash):
@@ -77,12 +77,12 @@ def parse(bin_payload):
     name_update = bin_payload[:LENGTHS['name_update']]
     value_hash = bin_payload[LENGTHS['value_hash']:]
 
-    name_update = hexlify(name_update)
-    value_hash = hexlify(value_hash)
+    # Filter the unnecessary &
+    name_update = name_update[:name_update.find('&')]
 
     return {
         'opcode': 'NAME_UPDATE',
-        'name_update': name_update.trim(),
+        'name_update': name_update,
         'value_hash': value_hash
     }
 
@@ -105,4 +105,16 @@ def update_sanity_test(name, consensus_hash, data_hash):
         raise Exception("Invalid hex string '%s': bad length" % (data_hash))
 
     return True
+
+@state_transition( "name", "name_records", "check_name_collision" )
+def check_update(state_engine, nameop, block_id, checked_ops):
+    """
+    Verify the validity of a update nameop.
+
+    """
+    name = nameop['name']
+    name_records =  state_engine.get_name(name)
+
+
+
 

@@ -53,7 +53,7 @@ def do_name_update(name, data_hash, payment_privkey_info, tx_broadcaster):
         return {'error': 'The owner address is not correct'}
 
     try:
-        signed_tx = name_register_tx(name, payment_privkey_info , data_hash, tx_broadcaster)
+        signed_tx = name_update_tx(name, payment_privkey_info , data_hash, tx_broadcaster)
     except ValueError, ve:
         log.exception(ve)
         log.error("Failed to create name update tx")
@@ -82,7 +82,7 @@ def name_register_tx(name, private_key, reveal_address, consensus_hash, payment_
     tx = make_tx_name_register(name, private_key, reveal_address, consensus_hash, payment_address, utxo_client)
     return tx
 
-def name_register_tx(name, private_key, data_hash, tx_broadcaster):
+def name_update_tx(name, private_key, data_hash, tx_broadcaster):
     tx = make_tx_name_update(name, private_key, data_hash, tx_broadcaster)
     return tx
 
