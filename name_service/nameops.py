@@ -102,9 +102,9 @@ def do_name_revoke(name, payment_privkey_info, tx_broadcaster):
 
     return resp
 
-def do_name_transfer(name, payment_privkey_info, owner_privkey_info):
-    previous_owner_address = get_privkey_info_address(payment_privkey_info)
-
+def do_name_transfer(name, payment_privkey_info, owner_privkey_info, tx_broadcaster):
+    previous_owner_address = get_privkey_info_address(owner_privkey_info)
+    new_owner_address = get_privkey_info_address(owner_privkey_info)
     # Check name ownership
     db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
     records = db.get_name(name)
@@ -118,7 +118,7 @@ def do_name_transfer(name, payment_privkey_info, owner_privkey_info):
         return {'error': 'The owner address is not correct'}
 
     try:
-        signed_tx = name_transfer_tx(name, payment_privkey_info, owner_privkey_info,tx_broadcaster)
+        signed_tx = name_transfer_tx(name, payment_privkey_info, new_owner_address,tx_broadcaster)
     except ValueError, ve:
         log.exception(ve)
         log.error("Failed to create name update tx")
@@ -151,8 +151,8 @@ def name_revoke_tx(name, private_key, tx_broadcaster):
     return tx
 
 
-def name_transfer_tx(name, payment_privkey_info, owner_privkey_info, tx_broadcaster):
-    tx = make_tx_name_transfer(name, payment_privkey_info, owner_privkey_info, tx_broadcaster)
+def name_transfer_tx(name, payment_privkey_info, owner_address, tx_broadcaster):
+    tx = make_tx_name_transfer(name, payment_privkey_info, owner_address, tx_broadcaster)
     return tx
 
 

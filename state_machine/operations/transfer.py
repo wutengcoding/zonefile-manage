@@ -4,7 +4,8 @@ import virtualchain
 from state_machine.nameset import *
 from state_machine.nameset.state_checker import state_transition
 from state_machine.script import *
-
+from pybitcoin.transactions.scripts import *
+from pybitcoin.transactions.network import *
 
 FIELDS = NAMEREC_FIELDS
 
@@ -105,12 +106,52 @@ def parse(bin_payload):
         'name': fqn
     }
 
+def calculate_change_amount(inputs, send_amount, fee):
+    # calculate the total amount  coming into the transaction from the inputs
+    total_amount_in = sum([input['value'] for input in inputs])
+    # change = whatever is left over from the amount sent & the transaction fee
+    change_amount = total_amount_in - send_amount - fee
+    # check to ensure the change amount is a non-negative value and return it
+    if change_amount < 0:
+        raise ValueError('Not enough inputs for transaction (total: %s, to spend: %s, fee: %s).' % (total_amount_in, send_amount, fee))
+    return change_amount
 
-def make_transaction(name, payment_privkey_info, owner_privkey_info, zonefilemanage_client):
+def make_op_return_outputs(data, inputs, last_address, change_address, fee=100,
+                           send_amount=0, format='bin'):
+    """ Builds the outputs for an OP_RETURN transaction.
+    """
+    return [
+        # main output
+        { "script_hex": make_op_return_script(data, format=format), "value": send_amount },
+        # last owner output
+        {
+            "script_hex": make_pay_to_address_script(last_address),
+            "value": calculate_change_amount(inputs, send_amount, fee)/2
+        },
+        # change output
+        { "script_hex": make_pay_to_address_script(change_address),
+          "value": calculate_change_amount(inputs, send_amount, fee)/2
+        }
+    ]
+def make_transaction(name, payment_privkey_info, owner_address, zonefilemanage_client):
 
     data = build(name)
-    tx = make_op_return_tx(data, virtualchain.BitcoinPrivateKey(owner_privkey_info), zonefilemanage_client, fee=100000,
-                       format='bin')
+    private_key_obj, from_address, inputs = analyze_private_key(payment_privkey_info,
+                                                                zonefilemanage_client)
+    outputs = make_op_return_outputs(data, inputs, from_address, owner_address,
+                                     fee=100, format=format)
+
+    # serialize the transaction
+    unsigned_tx = serialize_transaction(inputs, outputs)
+
+    # generate a scriptSig for each input
+    for i in xrange(0, len(inputs)):
+        signed_tx = sign_transaction(unsigned_tx, i, private_key_obj.to_hex())
+        unsigned_tx = signed_tx
+
+    # return the signed tx
+    return signed_tx
+
     return tx
 
 @state_transition( "name", "name_records", "check_name_collision" )
