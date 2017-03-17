@@ -11,6 +11,8 @@ from config import *
 
 from register import make_transaction as make_tx_name_register, check_register as check_register
 from update import make_transaction as make_tx_name_update, check_update as check_update
+from revoke import make_transaction as make_tx_name_revoke, check_revoke as check_revoke
+from transfer import make_transaction as make_tx_name_transfer, check_transfer as check_transfer
 
 log = get_logger("operations.__init__")
 
@@ -29,8 +31,10 @@ SERIALIZE_FIELDS = {
 #     "NAME_REVOKE": check_revoke,
 # }
 CHECK_METHODS = {
-     "NAME_REGISTER": check_register,
-    "NAME_UPDATE": check_update
+    "NAME_REGISTER": check_register,
+    "NAME_UPDATE": check_update,
+    "NAME_REVOKE": check_revoke,
+    "NAME_TRANSFER": check_transfer
 }
 
 

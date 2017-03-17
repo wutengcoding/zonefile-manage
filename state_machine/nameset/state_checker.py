@@ -40,7 +40,7 @@ def state_transition(history_id_key, table_name, collision_checker):
     # Handle function
     def wrap(check):
         def wrapped_check(state_engine, nameop, block_id, checked_ops):
-            rc = check(state_create, nameop, block_id, checked_ops)
+            rc = check(state_engine, nameop, block_id, checked_ops)
             nameop['__table__'] = table_name
             nameop['__state_transition__'] = True
             if rc:

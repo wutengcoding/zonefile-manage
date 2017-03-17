@@ -6,7 +6,7 @@ import pybitcoin
 
 DEBUG = False
 if os.environ.get("ZONEFILEMANAGE_DEBUG") == "1":
-    DEBUG = True
+    DEBUG = False
 
 REINDEX_FREQUENCY = 300 # seconds
 if os.environ.get("ZONEFILEMANAGE_TEST") == "1":
@@ -126,7 +126,9 @@ def get_logger(name="ZONEFILEMANAGE"):
     if DEBUG:
         logging.disable(logging.NOTSET)
         level = logging.DEBUG
-
+    else:
+        logging.disable(logging.NOTSET)
+        level = logging.INFO
     if name is None:
         name = "<unknown>"
         level = logging.CRITICAL
@@ -137,8 +139,9 @@ def get_logger(name="ZONEFILEMANAGE"):
     console.setLevel(level)
     file_handler = logging.FileHandler("test.log")
     file_handler.setLevel(level)
+    # if DEBUG else '%(message)s'
     log_format = ('[%(asctime)s] [%(levelname)s] [%(module)s:%(lineno)d] (' + str(
-        os.getpid()) + '.%(thread)d) %(message)s' if DEBUG else '%(message)s')
+        os.getpid()) + '.%(thread)d) %(message)s')
     formatter = logging.Formatter(log_format)
     console.setFormatter(formatter)
     file_handler.setFormatter(formatter)

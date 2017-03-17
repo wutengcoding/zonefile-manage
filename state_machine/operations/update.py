@@ -1,3 +1,5 @@
+import xmlrpclib
+
 from state_machine.nameset import *
 from state_machine.script import *
 from state_machine.b40 import *
@@ -35,6 +37,27 @@ def build(name, value_hash):
     packaged_script = add_magic_bytes(script)
 
     return packaged_script
+
+def get_update_recipient_from_outputs( outputs ):
+
+    ret = None
+
+    for output in outputs:
+
+        output_script = output['scriptPubkey']
+        output_asm = output_script.get('asm')
+        output_hex = output_script.get('hex')
+
+        output_address = output_script.get('address')
+
+        if output_asm[0:9] != 'OP_RETURN' and output_hex is not None:
+            ret = output_hex
+            break
+    if ret is None:
+        raise Exception("No registration address found")
+
+    return ret
+
 def make_transaction(name, payment_privkey_info, value_hash, zonefilemanage_client):
 
     data = build(name, value_hash)
@@ -45,6 +68,17 @@ def make_transaction(name, payment_privkey_info, value_hash, zonefilemanage_clie
 
 
 def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid ):
+
+    try:
+        recipient = get_update_recipient_from_outputs(outputs)
+        recipient_address = virtualchain.script_hex_address(recipient)
+
+        assert recipient is not None
+        assert recipient_address is not None
+    except Exception, e:
+        log.exception(e)
+        raise Exception("Failed to extract")
+
     sender_pubkey_hex = None
 
     parsed_payload = parse(payload)
@@ -53,6 +87,8 @@ def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid ):
     ret = {
         "vtxindex": vtxindex,
         "txid": txid,
+        "recipient": recipient,
+        "recipient_address": recipient_address,
         "op": NAME_UPDATE
     }
 
@@ -82,7 +118,7 @@ def parse(bin_payload):
 
     return {
         'opcode': 'NAME_UPDATE',
-        'name_update': name_update,
+        'name': name_update,
         'value_hash': value_hash
     }
 
@@ -113,8 +149,16 @@ def check_update(state_engine, nameop, block_id, checked_ops):
 
     """
     name = nameop['name']
-    name_records =  state_engine.get_name(name)
+    records =  state_engine.get_name(name)
 
+    if records is None:
+        log.error("No such record for name %s" % name)
+        return False
+    if records['recipient_address'] != nameop['recipient_address']:
+        log.error("Owner address of %s is not matched, expected %s, but %s" % (
+        name, records['recipient_address'], name['recipient_address']))
+        return False
+    return True
 
 
 

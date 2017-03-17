@@ -205,7 +205,7 @@ class ZonefileManageDB(indexer.StateEngine):
 
         table = state_create_get_table(nameop)
         initial_state = self.sanitize_op(nameop)
-        # create from preorder
+
         rc = namedb_state_create(cur, opcode, initial_state,
                                  current_block_number, initial_state['vtxindex'], initial_state['txid'], table)
 
@@ -214,8 +214,7 @@ class ZonefileManageDB(indexer.StateEngine):
             os.abort()
 
         self.db.commit()
-        res = self.is_name_registered(nameop['name'])
-        log.info(res)
+
         return initial_state
 
 
@@ -230,6 +229,19 @@ class ZonefileManageDB(indexer.StateEngine):
 
         cur = self.db.cursor()
         opcode = nameop.get('opcode', None)
+
+        table = state_create_get_table(nameop)
+        initial_state = self.sanitize_op(nameop)
+        # create from preorder
+        rc = namedb_state_transition(cur, opcode, initial_state,
+                                 current_block_number, initial_state['vtxindex'], initial_state['txid'], table)
+
+        if not rc:
+            self.db.rollback()
+            os.abort()
+
+        self.db.commit()
+        return initial_state
 
 
     @classmethod

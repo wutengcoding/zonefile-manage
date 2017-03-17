@@ -130,8 +130,8 @@ def namedb_format_query( query, values ):
 
 
 def namedb_get_name(cur, name, current_block, included_expired=False, include_history=False):
-    select_query = "SELECT * FROM name_records WHERE NAME = (?);"
-    args = (name,)
+    select_query = "SELECT * FROM name_records WHERE NAME = ? and REVOKED = ?;"
+    args = (name, 0)
     name_rows = namedb_query_execute(cur, select_query, args)
     name_row = name_rows.fetchone()
 
@@ -143,10 +143,19 @@ def namedb_get_name(cur, name, current_block, included_expired=False, include_hi
     return name_rec
 
 
+def namedb_state_transition(cur, opcode, new_record, block_id, vtxindex, txid, record_table):
+    if opcode in OPCODE_NAME_STATE_TRANSITIONS:
+        rc = namedb_name_update(cur, new_record)
+    return True
 
 def namedb_state_create(cur, opcode, new_record, block_id, vtxindex, txid, record_table):
     if opcode in OPCODE_NAME_STATE_CREATIONS:
         rc = namedb_name_insert(cur, new_record)
+    return True
+
+def namedb_name_update(cur, record):
+    query, values = namedb_update_prepare(cur, record, "name_records")
+    namedb_query_execute(cur, query, values)
     return True
 
 def namedb_name_insert(cur, input_name_rec):
@@ -160,6 +169,34 @@ def namedb_name_insert(cur, input_name_rec):
 
     namedb_query_execute(cur, query, values)
     return True
+def namedb_update_prepare(cur, record, table_name):
+    copyed_record = deepcopy(record)
+    update_columns = copyed_record.keys()
+
+    to_remove_records = ['name', 'first_registered']
+    for r in to_remove_records:
+        if r in update_columns:
+            update_columns.remove(r)
+
+    update_values = []
+    for c in update_columns:
+        if record[c] == False:
+            update_values.append(0)
+        elif record[c] == True:
+            update_values.append(1)
+        else:
+            update_values.append(record[c])
+
+    update_values = tuple(update_values)
+    update_set = [("%s = ?" % c) for c in update_columns]
+
+    where_values = (record['name'],)
+
+    query = "UPDATE %s SET %s WHERE name = ?" % (table_name, ", ".join(update_set))
+
+    log.debug(namedb_format_query(query, update_values))
+
+    return (query, update_values + where_values)
 
 
 def namedb_insert_prepare(cur, record, table_name):

@@ -137,11 +137,16 @@ def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None,
     return resp
 
 
-def zonefilemanage_name_revoke():
+def zonefilemanage_name_revoke(name, privatekey):
     """
     Revoke a name
     """
-    pass
+    log.info("Revoke a name %s" % name)
+    test_proxy = make_proxy()
+    name_service.set_default_proxy(test_proxy)
+
+    resp = name_service.do_name_revoke(name, privatekey, test_proxy)
+    return resp
 
 
 def zonefilemanage_name_transfer():
