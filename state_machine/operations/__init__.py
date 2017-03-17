@@ -10,7 +10,7 @@ import copy
 from config import *
 
 from register import make_transaction as make_tx_name_register, check_register as check_register
-from update import make_transaction as make_tx_name_update
+from update import make_transaction as make_tx_name_update, check_update as check_update
 
 log = get_logger("operations.__init__")
 
@@ -30,7 +30,7 @@ SERIALIZE_FIELDS = {
 # }
 CHECK_METHODS = {
      "NAME_REGISTER": check_register,
-
+    "NAME_UPDATE": check_update
 }
 
 

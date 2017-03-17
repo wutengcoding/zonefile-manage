@@ -2,7 +2,7 @@ from state_machine.nameset import *
 from state_machine.script import *
 from state_machine.b40 import *
 from pybitcoin import make_op_return_tx
-
+from state_machine.nameset.state_checker import state_transition
 from config import *
 
 FIELDS = NAMEREC_FIELDS[:] + [
@@ -105,4 +105,16 @@ def update_sanity_test(name, consensus_hash, data_hash):
         raise Exception("Invalid hex string '%s': bad length" % (data_hash))
 
     return True
+
+@state_transition( "name", "name_records", "check_name_collision" )
+def check_update(state_engine, nameop, block_id, checked_ops):
+    """
+    Verify the validity of a update nameop.
+
+    """
+    name = nameop['name']
+    name_records =  state_engine.get_name(name)
+
+
+
 
