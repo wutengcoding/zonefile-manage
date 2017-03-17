@@ -14,6 +14,8 @@ def scenario( wallets, **kw ):
     zonefilemanage_name_register('foo', wallets[1].addr, wallets[0].privkey)
     next_block(**kw)
 
+    zonefilemanage_name_update('foo', '123', wallets[0].privkey)
+    next_block(**kw)
     print 'scenario successfully'
 
 def check( state_engine ):

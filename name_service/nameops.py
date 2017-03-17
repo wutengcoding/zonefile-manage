@@ -44,8 +44,11 @@ def do_name_update(name, data_hash, payment_privkey_info):
     # Check ownership
     db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
     records = db.get_name(name)
-
-    pass
+    assert type(records) == dict
+    if records['recipient_address'] != owner_address:
+        log.error("Owner address of %s is not matched, expected %s, but %s" % (name, records['recipient_address'], owner_address))
+        return {'error': 'The owner address is not correct'}
+    
 
 def do_name_revoke():
     pass
