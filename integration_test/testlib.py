@@ -112,7 +112,7 @@ def zonefilemanage_name_register(name, register_addr, privatekey, consensus_hash
     """
     Register a name
     """
-    log.info('register a name %s' % name)
+    log.info("Register a name %s" % name)
     test_proxy = make_proxy()
     name_service.set_default_proxy(test_proxy)
 
@@ -128,6 +128,7 @@ def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None,
     """
     Update a name
     """
+    log.info("Update a name %s, data_hash is %s" % (name, data_hash ))
     test_proxy = make_proxy()
     name_service.set_default_proxy(test_proxy)
 
@@ -135,6 +136,19 @@ def zonefilemanage_name_update(name, data_hash, privatekey, consensus_hash=None,
 
     return resp
 
+
+def zonefilemanage_name_revoke():
+    """
+    Revoke a name
+    """
+    pass
+
+
+def zonefilemanage_name_transfer():
+    """
+    Transfer a name
+    """
+    pass
 
 
 def get_utxo_client():

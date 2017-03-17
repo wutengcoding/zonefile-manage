@@ -161,3 +161,14 @@ def script_hex_to_address( script_hex ):
 
     else:
         raise ValueError("Nonstandard script %s" % script_hex)
+
+def get_privkey_info_address(privkey_info):
+    if privkey_info is None:
+        return None
+
+    if is_singlesig(privkey_info):
+        return virtualchain.BitcoinPrivateKey(privkey_info).public_key().address()
+
+    else:
+        raise ValueError("Invalid private key info")
+

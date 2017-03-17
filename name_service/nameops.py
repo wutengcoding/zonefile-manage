@@ -1,10 +1,12 @@
+import xmlrpclib
+
 import pybitcoin
 import virtualchain
 from config import get_logger
 from state_machine.operations import *
 from pybitcoin import broadcast_transaction
-
-
+from virtualchain.bitcoin_blockchain.keys import *
+from state_machine import nameset as state_engine
 log = get_logger("nameops")
 
 default_proxy = None
@@ -37,7 +39,12 @@ def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx
     return resp
 
 
-def do_name_update():
+def do_name_update(name, data_hash, payment_privkey_info):
+    owner_address = get_privkey_info_address(payment_privkey_info)
+    # Check ownership
+    db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
+    records = db.get_name(name)
+
     pass
 
 def do_name_revoke():
@@ -51,6 +58,12 @@ def do_name_transfer():
 def name_register_tx(name, private_key, reveal_address, consensus_hash, payment_address, utxo_client):
     tx = make_tx_name_register(name, private_key, reveal_address, consensus_hash, payment_address, utxo_client)
     return tx
+
+
+def get_name_record(name):
+    s = xmlrpclib.ServerProxy('http://%s:%s' % ('0.0.0.0', RPC_SERVER_PORT))
+    name_records = s.rpc_get_name(name)
+    return name_records
 
 
 
