@@ -14,6 +14,14 @@ def set_default_proxy(proxy):
     global default_proxy
     default_proxy = proxy
 
+default_db_inst = None
+
+def get_default_db_inst():
+    global default_db_inst
+    if default_db_inst is None:
+        default_db_inst = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
+    return default_db_inst
+
 def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx_broadcaster, consensus_hash=None, proxy=None, safety_check=None):
     try:
         payment_address = virtualchain.BitcoinPrivateKey(payment_privkey_info).public_key().address()
@@ -42,9 +50,11 @@ def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx
 def do_name_update(name, data_hash, payment_privkey_info, tx_broadcaster):
     owner_address = get_privkey_info_address(payment_privkey_info)
     # Check ownership
-    db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
+    db = get_default_db_inst()
     records = db.get_name(name)
-
+    global default_db_inst
+    if default_db_inst is None:
+        default_db_inst = db
     if records is None:
         log.error("No such record for name %s" % name)
         return {'error': "The name record doesn't exist"}
@@ -73,7 +83,7 @@ def do_name_update(name, data_hash, payment_privkey_info, tx_broadcaster):
 def do_name_revoke(name, payment_privkey_info, tx_broadcaster):
     owner_address = get_privkey_info_address(payment_privkey_info)
     # Check ownership
-    db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
+    db = get_default_db_inst()
     records = db.get_name(name)
 
     if records is None:
@@ -103,10 +113,12 @@ def do_name_revoke(name, payment_privkey_info, tx_broadcaster):
     return resp
 
 def do_name_transfer(name, payment_privkey_info, owner_privkey_info, tx_broadcaster):
-    previous_owner_address = get_privkey_info_address(owner_privkey_info)
+
+    previous_owner_address = get_privkey_info_address(payment_privkey_info)
     new_owner_address = get_privkey_info_address(owner_privkey_info)
+
     # Check name ownership
-    db = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
+    db = get_default_db_inst()
     records = db.get_name(name)
 
     if records is None:

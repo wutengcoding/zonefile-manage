@@ -149,11 +149,16 @@ def zonefilemanage_name_revoke(name, privatekey):
     return resp
 
 
-def zonefilemanage_name_transfer():
+def zonefilemanage_name_transfer(name, previous_privkey, change_privkey):
     """
     Transfer a name
     """
-    pass
+    log.info("Transfer a name %s" % name)
+    test_proxy = make_proxy()
+    name_service.set_default_proxy(test_proxy)
+
+    resp = name_service.do_name_transfer(name, previous_privkey, change_privkey, test_proxy)
+    return resp
 
 
 def get_utxo_client():
