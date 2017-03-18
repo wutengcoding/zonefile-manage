@@ -11,7 +11,7 @@ wallets = [
 consensus = "17ac43c1d8549c3181b200f1bf97eb7d"
 
 def scenario( wallets, **kw ):
-    zonefilemanage_name_register('foo', wallets[1].addr, wallets[0].privkey)
+    zonefilemanage_name_register('foo', wallets[0].privkey)
     next_block(**kw)
 
 

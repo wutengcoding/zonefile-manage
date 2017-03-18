@@ -22,14 +22,14 @@ def get_default_db_inst():
         default_db_inst = state_engine.get_readonly_db_state(disposition=state_engine.DISPOSITION_RO)
     return default_db_inst
 
-def do_name_register(name, payment_privkey_info, reveal_address, utxo_client, tx_broadcaster, consensus_hash=None, proxy=None, safety_check=None):
+def do_name_register(name, payment_privkey_info, utxo_client, tx_broadcaster, consensus_hash=None, proxy=None, safety_check=None):
     try:
         payment_address = virtualchain.BitcoinPrivateKey(payment_privkey_info).public_key().address()
     except Exception, e:
         log.error("Invalid private key info")
         return {'error': 'Name register can only use a single private key with a P2PKH script'}
     try:
-        signed_tx = name_register_tx(name, payment_privkey_info, reveal_address, consensus_hash, payment_address, utxo_client)
+        signed_tx = name_register_tx(name, payment_privkey_info, consensus_hash, payment_address, utxo_client)
     except ValueError, ve:
         log.exception(ve)
         log.error("Failed to create name register tx")
@@ -149,8 +149,8 @@ def do_name_transfer(name, payment_privkey_info, owner_privkey_info, tx_broadcas
 
 
 
-def name_register_tx(name, private_key, reveal_address, consensus_hash, payment_address, utxo_client):
-    tx = make_tx_name_register(name, private_key, reveal_address, consensus_hash, payment_address, utxo_client)
+def name_register_tx(name, private_key, consensus_hash, payment_address, utxo_client):
+    tx = make_tx_name_register(name, private_key, consensus_hash, payment_address, utxo_client)
     return tx
 
 def name_update_tx(name, private_key, data_hash, tx_broadcaster):

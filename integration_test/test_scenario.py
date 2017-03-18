@@ -266,7 +266,7 @@ def bitcoion_regtest_fill_wallets( wallets, default_payment_wallet=None):
     bitcoind.generate(6)
 
     print >> sys.stderr, ""
-    for wallet in wallets + [default_payment_wallet]:
+    for wallet in wallets:
         if wallet is None:
             continue
 
