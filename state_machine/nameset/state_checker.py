@@ -27,10 +27,6 @@ def state_create(history_id_key, table_name, collision_checker):
             rc = check(state_engine, nameop, block_id, checked_ops)
             nameop['__table__'] = table_name
             nameop['__state_create__'] = True
-            if rc:
-                log.info("REGISTER check is succeed")
-            else:
-                log.info("REGISTER check is failed")
             return rc
         return wrapped_check
     return wrap

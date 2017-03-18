@@ -11,18 +11,22 @@ wallets = [
 consensus = "17ac43c1d8549c3181b200f1bf97eb7d"
 
 def scenario( wallets, **kw ):
-    zonefilemanage_name_register('foo', wallets[0].privkey)
+    resp = zonefilemanage_name_register('foo', wallets[0].privkey)
+    log.info(resp)
     next_block(**kw)
 
-
-    zonefilemanage_name_update('foo', '1'*20, wallets[0].privkey)
+    resp = zonefilemanage_name_update('foo', '1'*20, wallets[0].privkey)
+    log.info(resp)
     next_block(**kw)
 
-    zonefilemanage_name_transfer('foo', wallets[0].privkey, wallets[1].privkey)
+    resp = zonefilemanage_name_transfer('foo', wallets[0].privkey, wallets[1].privkey)
+    log.info(resp)
     next_block(**kw)
 
-    zonefilemanage_name_revoke('foo', wallets[1].privkey)
+    resp = zonefilemanage_name_revoke('foo', wallets[1].privkey)
+    log.info(resp)
     next_block(**kw)
+
     print 'scenario successfully'
 
 def check( state_engine ):
