@@ -203,9 +203,6 @@ def bitcoind_regtest_reset():
     set_bitcoin_regtest_opts(opts)
 
     if os.path.exists(bitcoin_dir):
-        # if os.path.exists(bitcoin_pidpath):
-            # kill running daemon
-            # os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
         for i in xrange(0, 10000000):
             rc = os.system("bitcoin-cli -regtest -conf=%s stop" % bitcoin_conf)
             if rc != 0:
@@ -265,9 +262,6 @@ def bitcoion_regtest_fill_wallets( wallets, default_payment_wallet=None):
     for wallet in wallets:
         # fill each wallet
         fill_wallet(bitcoind, wallet, 50)
-    if default_payment_wallet is not None:
-        # fill optional default payment address
-        fill_wallet(bitcoind, default_payment_wallet, 250)
 
     bitcoind.generate(6)
 
