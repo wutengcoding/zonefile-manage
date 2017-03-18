@@ -158,6 +158,7 @@ def check_update(state_engine, nameop, block_id, checked_ops):
         log.error("Owner address of %s is not matched, expected %s, but %s" % (
         name, records['recipient_address'], name['recipient_address']))
         return False
+    log.info("Update %s check is succeed" % name)
     return True
 
 

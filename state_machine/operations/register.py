@@ -124,6 +124,7 @@ def check_register(state_engine, nameop, block_id, checked_ops):
     if state_engine.is_name_registered(name):
         return False
     else:
+        log.info("Register %s check is succeed" % name)
         return True
 
 

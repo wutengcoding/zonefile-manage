@@ -71,7 +71,9 @@ def state_transition_invariant_tags():
     """
     return [
         '__table__',
-        '__state_transition__'
+        '__state_transition__',
+        'sender',
+        'sender_address'
     ]
 
 def get_state_invariant_tags():

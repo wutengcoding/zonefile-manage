@@ -6,6 +6,7 @@ from state_machine.nameset.state_checker import state_transition
 from state_machine.script import *
 from pybitcoin.transactions.scripts import *
 from pybitcoin.transactions.network import *
+import binascii
 
 FIELDS = NAMEREC_FIELDS
 
@@ -31,7 +32,7 @@ def build(name):
 
 def get_registration_recipient_from_outputs( outputs ):
 
-    ret = None
+    ret = []
 
     for output in outputs:
 
@@ -42,11 +43,11 @@ def get_registration_recipient_from_outputs( outputs ):
         output_address = output_script.get('address')
 
         if output_asm[0:9] != 'OP_RETURN' and output_hex is not None:
-            ret = output_hex
-            break
+            ret.append(output_hex)
     if ret is None:
         raise Exception("No registration address found")
 
+    assert len(ret) == 2, "the address length is not correct"
     return ret
 
 def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid):
@@ -57,10 +58,16 @@ def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid):
     recipient_address:  the address from the recipient script
     """
     try:
-        recipient = get_registration_recipient_from_outputs( outputs )
-        recipient_address = virtualchain.script_hex_address(recipient)
+        recipient_list = get_registration_recipient_from_outputs( outputs )
 
-        assert recipient is not None
+        sender = recipient_list[0]
+        sender_address = virtualchain.script_hex_address(sender)
+        recipient = recipient_list[1]
+        recipient_address = virtualchain.script_hex_address(recipient)
+        old_address = virtualchain.script_hex_address(recipient_list[0])
+
+
+        assert old_address is not None
         assert recipient_address is not None
 
     except Exception, e:
@@ -72,7 +79,9 @@ def tx_extract( payload, senders, inputs, outputs, block_id, vtxindex, txid):
 
     ret = {
         "value_hash": None,
-        "recipient": recipient,
+        "sender": sender,
+        "sender_address": sender_address,
+        "recipient": recipient_list[0],
         "recipient_address": recipient_address,
         "revoked": False,
         "last_renewed": block_id,
@@ -136,10 +145,10 @@ def make_op_return_outputs(data, inputs, last_address, change_address, fee=100,
 def make_transaction(name, payment_privkey_info, owner_address, zonefilemanage_client):
 
     data = build(name)
-    private_key_obj, from_address, inputs = analyze_private_key(payment_privkey_info,
+    private_key_obj, from_address, inputs = analyze_private_key(virtualchain.BitcoinPrivateKey(payment_privkey_info),
                                                                 zonefilemanage_client)
     outputs = make_op_return_outputs(data, inputs, from_address, owner_address,
-                                     fee=100, format=format)
+                                     fee=100000)
 
     # serialize the transaction
     unsigned_tx = serialize_transaction(inputs, outputs)
@@ -152,7 +161,6 @@ def make_transaction(name, payment_privkey_info, owner_address, zonefilemanage_c
     # return the signed tx
     return signed_tx
 
-    return tx
 
 @state_transition( "name", "name_records", "check_name_collision" )
 def check_transfer(state_engine, nameop, block_id, checked_ops):
@@ -161,9 +169,16 @@ def check_transfer(state_engine, nameop, block_id, checked_ops):
 
     """
     name = nameop['name']
-    if state_engine.is_name_registered(name):
+    records = state_engine.get_name(name)
+
+    if records is None:
+        log.error("No such record for name %s" % name)
         return False
-    else:
-        return True
+    if records['recipient_address'] != nameop['sender_address']:
+        log.error("Owner address of %s is not matched, expected %s, but %s" % (
+            name, records['recipient_address'], name['sender_address']))
+        return False
+    log.info("Transfer %s check is succeed" % name)
+    return True
 
 
