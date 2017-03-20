@@ -52,15 +52,15 @@ def do_name_update(name, data_hash, payment_privkey_info, tx_broadcaster):
     # Check ownership
     db = get_default_db_inst()
     records = db.get_name(name)
-    global default_db_inst
-    if default_db_inst is None:
-        default_db_inst = db
     if records is None:
         log.error("No such record for name %s" % name)
         return {'error': "The name record doesn't exist"}
     if records['recipient_address'] != owner_address:
         log.error("Owner address of %s is not matched, expected %s, but %s" % (name, records['recipient_address'], owner_address))
         return {'error': 'The owner address is not correct'}
+
+    log.info(
+        "Owner address of %s is matched, expected %s, got %s" % (name, records['recipient_address'], owner_address))
 
     try:
         signed_tx = name_update_tx(name, payment_privkey_info , data_hash, tx_broadcaster)
@@ -94,6 +94,8 @@ def do_name_revoke(name, payment_privkey_info, tx_broadcaster):
         name, records['recipient_address'], owner_address))
         return {'error': 'The owner address is not correct'}
 
+    log.info("Owner address of %s is matched, expected %s, got %s" % (
+        name, records['recipient_address'], owner_address))
     try:
         signed_tx = name_revoke_tx(name, payment_privkey_info, tx_broadcaster)
     except ValueError, ve:
@@ -128,6 +130,9 @@ def do_name_transfer(name, payment_privkey_info, owner_privkey_info, tx_broadcas
         log.error("Owner address of %s is not matched, expected %s, but %s" % (
             name, records['recipient_address'], previous_owner_address))
         return {'error': 'The owner address is not correct'}
+
+    log.info("Owner address of %s is matched, expected %s, got %s" % (
+        name, records['recipient_address'], previous_owner_address))
 
     try:
         signed_tx = name_transfer_tx(name, payment_privkey_info, new_owner_address,tx_broadcaster)
