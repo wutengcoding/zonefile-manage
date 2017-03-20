@@ -580,7 +580,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         """
 
         log.info('Get the register rpc for %s' % name)
-        resp = zonefilemanage_name_register(name, wallets[1].addr, wallets[0].privkey)
+        resp = zonefilemanage_name_register(name, wallets[0].privkey)
         bitcoin_regtest_next_block()
 
         return resp
