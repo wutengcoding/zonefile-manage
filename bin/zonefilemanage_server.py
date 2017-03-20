@@ -38,7 +38,7 @@ parent_dir = os.path.abspath(current_dir + "/../")
 
 sys.path.insert(0, parent_dir)
 
-from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts, get_previous_ips, RPC_SERVER_PORT
+from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts, get_previous_ips, RPC_SERVER_PORT, get_my_ip
 from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
@@ -495,9 +495,8 @@ def run_zonefilemanage():
                 break
 
 def is_main_worker():
-    import socket
-    hostname = socket.gethostname()
-    return hostname == 'ip-172-31-31-120' or hostname == 'ubuntu'
+    my_ip = get_my_ip()
+    return my_ip == '172.17.0.2'
 
 
 def set_global_db(inst):
