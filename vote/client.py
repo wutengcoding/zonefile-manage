@@ -15,9 +15,17 @@ def register(name):
     s.close()
 
 if __name__ == '__main__':
+    # s = xmlrpclib.ServerProxy('http://%s:%s' % ('192.168.132.129', RPC_SERVER_PORT))
+
+
+
     s = xmlrpclib.ServerProxy('http://%s:%s' % ('52.11.126.50', RPC_SERVER_PORT))
+    # s = xmlrpclib.ServerProxy('http://%s:%s' % ('52.88.127.158', RPC_SERVER_PORT))
     # s = xmlrpclib.ServerProxy('http://%s:%s' % ('52.34.154.228', RPC_SERVER_PORT))
-    # res = s.rpc_ping()
-    # print res
-    res = s.rpc_register_name('bar')
+    name = 'barfoo1'
+    res = s.rpc_register_name(name)
+    print res
+    import time
+    time.sleep(10)
+    res = s.rpc_get_name(name)
     print res

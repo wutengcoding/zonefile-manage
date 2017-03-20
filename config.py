@@ -290,18 +290,12 @@ def is_running():
     global running
     return running
 
-pri_ip2pub_ip = {
-    'ip-172-31-31-120': '52.34.154.228',
-    'ip-172-31-16-128': '52.88.127.158',
-    'ip-172-31-29-232': '52.11.126.50'
-}
-
 
 def get_p2p_hosts():
-    return ['52.34.154.228', '52.11.126.50', '52.88.127.158']
+    return ['172.17.0.2', '172.17.0.3', '172.17.0.4']
 
 def get_previous_ips():
-    my_ip = get_my_public_ip()
+    my_ip = get_my_ip()
     hosts = get_p2p_hosts()
     newhosts = []
     for h in hosts:
@@ -309,11 +303,16 @@ def get_previous_ips():
             newhosts.append(h)
     return newhosts
 
-def get_my_public_ip():
-    import socket
-    hostname = socket.gethostname()
-    if hostname in pri_ip2pub_ip.keys():
-        return pri_ip2pub_ip[hostname]
+def get_my_ip():
+    import commands, re
+    ret, out = commands.getstatusoutput(
+        "ifconfig | grep 'inet addr:' | grep 'Bcast'| awk '{print $2}' | awk -F':' '{print $2}'")
+    pattern = re.compile("^\d+\.\d+\.\d+\.\d+$")
+    match = pattern.match(out)
+    if match:
+        return match.group()
     else:
-        raise Exception("hostname error")
+        raise Exception("Ip config is not right")
+        return None
+
 
