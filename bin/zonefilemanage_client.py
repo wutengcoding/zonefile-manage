@@ -1,6 +1,6 @@
 import xmlrpclib
 from config import *
-from bin.zonefilemanage_server import get_global_server
+# from bin.zonefilemanage_server import get_global_server
 
 log = get_logger("zonefilemanage_client")
 
@@ -26,12 +26,12 @@ def declare_block_owner(block_id, owner_ip):
         s('close')
 
 
-def get_name_action_status(name, action):
-    server = get_global_server()
-    status = False
-    try:
-        status = server.collect_vote_poll(name, action)
-    except Exception, e:
-        log.exception(e)
-        return status
-    return status
+# def get_name_action_status(name, action):
+#     server = get_global_server()
+#     status = False
+#     try:
+#         status = server.collect_vote_poll(name, action)
+#     except Exception, e:
+#         log.exception(e)
+#         return status
+#     return status
