@@ -134,7 +134,12 @@ user = blockstack
 regtest = True
 """ % (TEST_RPC_PORT, TEST_CLIENT_RPC_PORT)
 
-
+VALID_OP_METHODS = {
+    "NAME_REGISTER": zonefilemanage_name_register,
+    "NAME_UPDATE": zonefilemanage_name_update,
+    "NAME_REVOKE": zonefilemanage_name_revoke,
+    "NAME_TRANSFER": zonefilemanage_name_transfer
+}
 
 class Pinger(threading.Thread):
     def __init__(self):
@@ -377,11 +382,14 @@ def bitcoin_regtest_next_block():
 
     opts = bitcoin_regtest_opts()
     bitcoind = bitcoin_regtest_connect(opts)
-    bitcoind.generate(1)
     current_block = bitcoind.getblockcount()
-    log.debug("Next block (now at %s)" % current_block)
 
-    declare_block_owner(current_block, get_my_ip())
+    broadcast_valid_ops(current_block)
+
+    bitcoind.generate(1)
+    log.debug("Next block (now at %s)" % current_block + 1)
+
+    declare_block_owner(current_block + 1, get_my_ip())
 
 def parse_args( argv ):
     """
@@ -500,6 +508,17 @@ def run_zonefilemanage():
             except:
                 break
 
+def broadcast_valid_ops(self, current_block_id):
+    server = get_global_server()
+    ops = server.get_pooled_valid_ops(current_block_id)
+    for op in ops:
+        name_action = op.split('_')
+        name = name_action[0]
+        action = name_action[1]
+        assert action is "NAME_REGISTER"
+        method = VALID_OP_METHODS.get(action)
+        method(name, wallets[0].privkey)
+
 def is_main_worker():
     my_ip = get_my_ip()
     return my_ip == '172.17.0.2'
@@ -553,6 +572,9 @@ class ZonefileManageRPCServer(threading.Thread, object):
     def get_block_owner(self, block_id):
         return self.get_block_owner(block_id)
 
+    def get_pooled_valid_ops(self, current_block_id):
+        return self.rpc_server.get_valid_ops(current_block_id)
+
 
 class SimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     rpc_path = ('/RPC2',)
@@ -579,12 +601,16 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         # The owner of the block
         self.block_owner = {}
 
-    def rpc_vote_for_name_action(self, name, action, poll):
+    def clear_pool(self):
+        self.vote_count.clear()
+        self.vote_poll.clear()
+
+    def rpc_vote_for_name_action(self, name, action, block_id, poll):
         try:
             assert type(poll) is bool
         except Exception, e:
             log.exception(e)
-        item = name + '_' + action
+        item = name + '_' + action + '_' + block_id
         if item in self.vote_count.keys():
             self.vote_count[item] += 1
         else:
@@ -596,6 +622,28 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
             else:
                 self.vote_poll[item] = 1
 
+    def get_valid_ops(self, current_block_id):
+        ops = []
+        name_action_list = self.vote_poll.keys()
+
+        for name_action_blockid in name_action_list:
+            parts = name_action_blockid.split("_")
+            block_id = parts[-1]
+
+            log.info("The block_id is %s" % block_id)
+
+            if current_block_id != int(block_id):
+                continue
+
+            if self.rpc_collect_vote(name_action_blockid):
+                ops.append(name_action_blockid)
+
+        return ops
+
+
+
+
+
     def rpc_register_name(self, name):
         """
         RPC method for register a name
@@ -605,6 +653,8 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         resp = zonefilemanage_name_register(name, wallets[0].privkey)
 
         log.info("resp is %s" % resp)
+
+
         # name_action_status = get_name_action_status(name, "NAME_REGISTER")
         # status = '0'
         # if name_action_status:
@@ -614,6 +664,8 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         # status_name = status + name
         #
         # log.info("Build NAME_REGISTER status is %s" % status_name)
+
+
         bitcoin_regtest_next_block()
 
         return resp
@@ -639,11 +691,13 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         name_record = self.db.get_name(name)
         return name_record
 
-    def rpc_collect_vote(self, name, action):
+    def rpc_collect_vote(self, name_action):
         """
         Collect the vote result for a name
         """
-        name_action = name + action
+        # My opinion towards this
+        self.vote_count[name_action] += 1
+        self.vote_poll[name_action] += 1
         try:
             assert name_action in self.vote_poll.keys() and name_action in self.vote_count.keys(), "Collect for invalid name %s" % name_action
             return self.vote_poll[name_action] * 2 > self.vote_count[name_action]

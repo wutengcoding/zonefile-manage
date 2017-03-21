@@ -5,10 +5,10 @@ from config import *
 log = get_logger("zonefilemanage_client")
 
 
-def vote_for_name(name, action, poll):
+def vote_for_name(name, action, block_id, poll):
     hosts = get_other_ips()
     for h in hosts:
-        vote_for_name_to_one(name, action, poll, h)
+        vote_for_name_to_one(name, action, block_id, poll, h)
     return True
 
 def vote_for_name_to_one(name, action, poll, ip):

@@ -125,13 +125,14 @@ def check_register(state_engine, nameop, block_id, checked_ops):
     name = name[1:]
 
     if status == '0':
-        vote_for_name(name, "NAME_REGISTER", True)
+        vote_for_name(name, "NAME_REGISTER", nameop['block_number'], True)
         return False
 
     elif status == '1':
         log.info("Get the status = 1 for name %s" % name)
         res = get_name_action_status(name, "NAME_REGISTER")
         log.info("Get name action status is %s" % res)
+
     if state_engine.is_name_registered(name):
         return False
     else:

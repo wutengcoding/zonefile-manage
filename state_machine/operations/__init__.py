@@ -24,12 +24,6 @@ SERIALIZE_FIELDS = {
     "NAME_REVOKE": revoke.FIELDS
 }
 
-# CHECK_METHODS = {
-#     "NAME_REGISTER": check_register,
-#     "NAME_UPDATE": check_update,
-#     "NAME_TRANSFER": check_transfer,
-#     "NAME_REVOKE": check_revoke,
-# }
 CHECK_METHODS = {
     "NAME_REGISTER": check_register,
     "NAME_UPDATE": check_update,
