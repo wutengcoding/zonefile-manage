@@ -508,7 +508,7 @@ def run_zonefilemanage():
             except:
                 break
 
-def broadcast_valid_ops(self, current_block_id):
+def broadcast_valid_ops(current_block_id):
     server = get_global_server()
     ops = server.get_pooled_valid_ops(current_block_id)
     for op in ops:
