@@ -26,6 +26,7 @@ if os.environ.get("ZONEFILEMANAGE_TEST", None) == "1":
 
 running = False
 
+server = None
 
 GENESIS_SNAPSHOT = {
     str(FIRST_BLOCK_MAINNET-4): "17ac43c1d8549c3181b200f1bf97eb7d",
@@ -328,6 +329,23 @@ def get_my_ip():
         return None
 
 
+def get_global_server():
+    global server
+    return server
+
+def set_global_server(server_inst):
+    global server
+    if server is None:
+        server = server_inst
+
+
+def set_global_db(inst):
+    global db_inst
+    if db_inst is None:
+        db_inst = inst
+
+
 if __name__ == '__main__':
     ips = get_previous_ips()
     print ips
+

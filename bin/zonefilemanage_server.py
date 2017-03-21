@@ -46,7 +46,6 @@ from integration_test.testlib import *
 from state_machine import nameset as state_engine
 from bin.zonefilemanage_client import *
 
-server = None
 
 wallets = [
     #prvate key wif
@@ -527,19 +526,8 @@ def is_main_worker():
     return my_ip == '172.17.0.2'
 
 
-def set_global_server(server_inst):
-    global server
-    if server is None:
-        server = server_inst
 
-def get_global_server():
-    global server
-    return server
 
-def set_global_db(inst):
-    global db_inst
-    if db_inst is None:
-        db_inst = inst
 
 def get_global_db():
     global db_inst
