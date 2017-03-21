@@ -389,7 +389,7 @@ def bitcoin_regtest_next_block():
     # broadcast_valid_ops(current_block)
 
     bitcoind.generate(1)
-    log.debug("Next block (now at %s)" % current_block + 1)
+    log.info("Next block (now at %s) type is %s" % (current_block + 1, current_block))
 
     declare_block_owner(current_block + 1, get_my_ip())
 
@@ -656,18 +656,6 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         resp = zonefilemanage_name_register(name, wallets[0].privkey)
 
         log.info("resp is %s" % resp)
-
-
-        # name_action_status = get_name_action_status(name, "NAME_REGISTER")
-        # status = '0'
-        # if name_action_status:
-        #     status = '1'
-        # else:
-        #     status = '0'
-        # status_name = status + name
-        #
-        # log.info("Build NAME_REGISTER status is %s" % status_name)
-
 
         bitcoin_regtest_next_block()
 

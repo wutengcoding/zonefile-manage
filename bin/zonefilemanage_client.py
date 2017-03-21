@@ -20,6 +20,7 @@ def vote_for_name_to_one(name, action, block_id, poll, ip):
 
 def declare_block_owner(block_id, owner_ip):
     hosts = get_other_ips()
+    log.info("other hosts is %s" % hosts)
     for h in hosts:
         s = xmlrpclib.ServerProxy('http://%s:%s' % (h, RPC_SERVER_PORT))
         log.info("Sending block owner message to %s" % h)
