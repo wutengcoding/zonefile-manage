@@ -23,6 +23,11 @@ def get_default_db_inst():
     return default_db_inst
 
 def do_name_register(name, payment_privkey_info, utxo_client, tx_broadcaster, consensus_hash=None, proxy=None, safety_check=None):
+    db = get_default_db_inst()
+    records = db.get_name(name)
+    if records is not None:
+        log.error("The name %s has been registered" % name)
+
     try:
         payment_address = virtualchain.BitcoinPrivateKey(payment_privkey_info).public_key().address()
     except Exception, e:

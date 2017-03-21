@@ -292,16 +292,28 @@ def is_running():
 
 
 def get_p2p_hosts():
-    return ['172.17.0.2', '172.17.0.3', '172.17.0.4']
+    ips = "172.17.0.2-19"
+    ip_parts = ips.split('.')
+    assert len(ip_parts) == 4, "ips %s is not correct" % ips
+    ip_range = ip_parts[3].split('-')
+    ip_start = int(ip_range[0])
+    ip_end  = int(ip_range[1])
+
+    new_ip_parts = deepcopy(ip_parts)
+    new_ip_parts.pop()
+    ips = []
+    for i in xrange(ip_start, ip_end+1):
+        ip = ".".join(new_ip_parts + [str(i)])
+        ips.append(ip)
+
+    return ips
 
 def get_previous_ips():
     my_ip = get_my_ip()
     hosts = get_p2p_hosts()
-    newhosts = []
-    for h in hosts:
-        if h != my_ip:
-            newhosts.append(h)
-    return newhosts
+    my_ip_index = hosts.index(my_ip)
+    return hosts[:my_ip_index]
+
 
 def get_my_ip():
     import commands, re
@@ -316,3 +328,6 @@ def get_my_ip():
         return None
 
 
+if __name__ == '__main__':
+    ips = get_previous_ips()
+    print ips

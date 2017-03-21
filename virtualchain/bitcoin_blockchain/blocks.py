@@ -194,6 +194,9 @@ class BlockchainDownloader( BitcoinBasicClient ):
         nulldata_txs = []
         relindex = 0
 
+        if 'relayed_by' in block.keys():
+            log.info("Block is relayed_by %s" % block['relayed_by'])
+
         log.info("The initial txns format is %s " % block.txns)
 
         for txindex in xrange(0, len(block.txns)):
