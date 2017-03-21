@@ -44,6 +44,7 @@ from blockchain.autoproxy import JSONRPCException
 import virtualchain
 from integration_test.testlib import *
 from state_machine import nameset as state_engine
+from bin.zonefilemanage_client import *
 
 wallets = [
     #prvate key wif
@@ -375,9 +376,10 @@ def bitcoin_regtest_next_block():
     opts = bitcoin_regtest_opts()
     bitcoind = bitcoin_regtest_connect(opts)
     bitcoind.generate(1)
-    log.debug("Next block (now at %s)" % bitcoind.getblockcount())
+    current_block = bitcoind.getblockcount()
+    log.debug("Next block (now at %s)" % current_block)
 
-
+    declare_block_owner(current_block, get_my_ip())
 
 def parse_args( argv ):
     """
@@ -532,8 +534,11 @@ class ZonefileManageRPCServer(threading.Thread, object):
         if self.rpc_server is not None:
             self.rpc_server.shutdown()
 
-    def collect_vote_poll(self, name):
-        return self.rpc_server.collect_vote(name)
+    def collect_vote_poll(self, name, action):
+        return self.rpc_server.rpc_collect_vote(name + "_" + action)
+
+    def get_block_owner(self, block_id):
+        return self.get_block_owner(block_id)
 
 
 class SimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
@@ -558,21 +563,25 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         self.vote_poll = {}
         self.vote_count = {}
 
-    def rpc_vote_for_name(self, name, poll):
+        # The owner of the block
+        self.block_owner = {}
+
+    def rpc_vote_for_name_action(self, name, action, poll):
         try:
             assert type(poll) is bool
         except Exception, e:
             log.exception(e)
-        if name in self.vote_count.keys():
-            self.vote_count[name] += 1
+        item = name + '_' + action
+        if item in self.vote_count.keys():
+            self.vote_count[item] += 1
         else:
-            self.vote_count[name] = 1
+            self.vote_count[item] = 1
 
         if poll:
             if name in self.vote_poll.keys():
-                self.vote_poll[name] += 1
+                self.vote_poll[item] += 1
             else:
-                self.vote_poll[name] = 1
+                self.vote_poll[item] = 1
 
     def rpc_register_name(self, name):
         """
@@ -585,6 +594,18 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
 
         return resp
 
+    def rpc_declare_block_owner(self, block_id, owner):
+        """
+        the owner of the that block id
+        """
+        log.info("receive the owner of the block_id %s is %s" % (block_id, owner))
+        if block_id not in self.block_owner.keys():
+            self.block_owner[block_id] = owner
+            # Clear the previous vote cache
+
+        else:
+            log.error("Get duplicate owner of block_id %s, previous is %s, now is %s" % (block_id, self.block_owner[block_id], owner))
+
 
 
     def rpc_get_name(self, name):
@@ -594,13 +615,13 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         name_record = self.db.get_name(name)
         return name_record
 
-    def collect_vote(self, name):
+    def rpc_collect_vote(self, name_action):
         """
         Collect the vote result for a name
         """
         try:
-            assert name in self.vote_poll.keys() and name in self.vote_count.keys(), "Collect for invalid name %s" % name
-            return self.vote_poll[name] * 2 > self.vote_count[name]
+            assert name_action in self.vote_poll.keys() and name_action in self.vote_count.keys(), "Collect for invalid name %s" % name_action
+            return self.vote_poll[name_action] * 2 > self.vote_count[name_action]
         except Exception, e:
             log.exception(e)
 

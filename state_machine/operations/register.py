@@ -5,7 +5,7 @@ from config import *
 from state_machine.nameset import *
 from state_machine.nameset.state_checker import state_create
 from state_machine.script import *
-
+from bin.zonefilemanage_client import *
 FIELDS = NAMEREC_FIELDS
 
 
@@ -21,8 +21,17 @@ def build(name):
     magic op   name (37 bytes)
 
     """
+    name_action_status = get_name_action_status(name, "NAME_REGISTER")
+    status = '0'
+    if name_action_status:
+        status = '1'
+    else:
+        status = '0'
+    status_name = status + name
 
-    readable_script = "NAME_REGISTER %s" % (name)
+    log.info("Build NAME_REGISTER status is %s" % status_name)
+
+    readable_script = "NAME_REGISTER %s" % (status_name)
     script = parse_op(readable_script)
     packaged_script = add_magic_bytes(script)
 
@@ -121,6 +130,13 @@ def check_register(state_engine, nameop, block_id, checked_ops):
 
     """
     name = nameop['name']
+    status = name[0]
+    name = name[1:]
+
+    if status == '0':
+        vote_for_name(name, "NAME_REGISTER", True)
+        return False
+
     if state_engine.is_name_registered(name):
         return False
     else:
