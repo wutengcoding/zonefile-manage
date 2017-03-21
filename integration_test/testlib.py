@@ -108,7 +108,7 @@ def zonefilemanage_export_db(path, block_height, **kwargs):
         else:
             raise
 
-def zonefilemanage_name_register(name, privatekey, consensus_hash = None, safety_checks = False):
+def zonefilemanage_name_register(name, privatekey, status = '0', consensus_hash = None, safety_checks = False):
     """
     Register a name
     """
@@ -116,7 +116,7 @@ def zonefilemanage_name_register(name, privatekey, consensus_hash = None, safety
     test_proxy = make_proxy()
     name_service.set_default_proxy(test_proxy)
 
-    resp = name_service.do_name_register(name,  privatekey,
+    resp = name_service.do_name_register(status + name,  privatekey,
                                                    test_proxy, test_proxy, consensus_hash=consensus_hash,
                                                    proxy=test_proxy)
     return resp

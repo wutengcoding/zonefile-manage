@@ -520,7 +520,7 @@ def broadcast_valid_ops(current_block_id):
         action = name_action_blockid[1]
         blockid = name_action_blockid[2]
         log.info('name: %s action: %s in block: %s' % (name, action, blockid))
-        zonefilemanage_name_register('1' + name, wallets[0].privkey)
+        zonefilemanage_name_register(name, wallets[0].privkey, '1')
 
 def is_main_worker():
     my_ip = get_my_ip()

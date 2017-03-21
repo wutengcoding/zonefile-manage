@@ -29,8 +29,6 @@ def do_name_register(name, payment_privkey_info, utxo_client, tx_broadcaster, co
         log.error("The name %s has been registered" % name)
         return {"error": "Name %s has already exist" % name}
 
-    name = '0' + name
-
     try:
         payment_address = virtualchain.BitcoinPrivateKey(payment_privkey_info).public_key().address()
     except Exception, e:
