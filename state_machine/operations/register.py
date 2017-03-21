@@ -130,7 +130,7 @@ def check_register(state_engine, nameop, block_id, checked_ops):
 
     elif status == '1':
         log.info("Get the status = 1 for name %s" % name)
-        res = get_name_action_status(name, "NAME_REGISTER")
+        res = get_name_action_status(name, "REGISTER")
         log.info("Get name action status is %s" % res)
 
     if state_engine.is_name_registered(name):
