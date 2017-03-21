@@ -557,8 +557,8 @@ class ZonefileManageRPCServer(threading.Thread, object):
         if self.rpc_server is not None:
             self.rpc_server.shutdown()
 
-    def collect_vote_poll(self, name, action):
-        return self.rpc_server.rpc_collect_vote(name + "_" + action)
+    def collect_vote_poll(self, name, action, blockid):
+        return self.rpc_server.rpc_collect_vote("{}_{}_{}".format(name, action, blockid))
 
     def get_block_owner(self, block_id):
         return self.get_block_owner(block_id)
@@ -670,16 +670,16 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         name_record = self.db.get_name(name)
         return name_record
 
-    def rpc_collect_vote(self, name_action):
+    def rpc_collect_vote(self, name_action_blockid):
         """
         Collect the vote result for a name
         """
         # My opinion towards this
-        self.vote_count[name_action] += 1
-        self.vote_poll[name_action] += 1
+        self.vote_count[name_action_blockid] += 1
+        self.vote_poll[name_action_blockid] += 1
         try:
-            assert name_action in self.vote_poll.keys() and name_action in self.vote_count.keys(), "Collect for invalid name %s" % name_action
-            return self.vote_poll[name_action] * 2 > self.vote_count[name_action]
+            assert name_action_blockid in self.vote_poll.keys() and name_action_blockid in self.vote_count.keys(), "Collect for invalid name %s" % name_action_blockid
+            return self.vote_poll[name_action_blockid] * 2 > self.vote_count[name_action_blockid]
         except Exception, e:
             log.exception(e)
 

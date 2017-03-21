@@ -131,7 +131,7 @@ def check_register(state_engine, nameop, block_id, checked_ops):
     elif status == '1':
         log.info("The check method goes here for name: %s and status: %s" % (name, status))
         server = get_global_server()
-        res = server.collect_vote_poll(name, "REGISTER")
+        res = server.collect_vote_poll(name, "REGISTER", nameop['block_number'] - 1)
         log.info("Get name: %s action status is %s" % (name, res))
 
     if state_engine.is_name_registered(name):
