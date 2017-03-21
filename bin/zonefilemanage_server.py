@@ -520,8 +520,9 @@ def broadcast_valid_ops(current_block_id):
         action = name_action_blockid[1]
         blockid = name_action_blockid[2]
         log.info('name: %s action: %s in block: %s' % (name, action, blockid))
-        assert action is "REGISTER"
+        assert action is "REGISTER", "action %s is not REGISTER" % action
         method = VALID_OP_METHODS.get(action)
+        log.info("method is %s" % method)
         method(name, wallets[0].privkey)
 
 def is_main_worker():
