@@ -124,6 +124,8 @@ def check_register(state_engine, nameop, block_id, checked_ops):
     status = name[0]
     name = name[1:]
 
+    nameop['name'] = name
+
     if status == '0':
         vote_for_name(name, "REGISTER", nameop['block_number'], True)
         return False
