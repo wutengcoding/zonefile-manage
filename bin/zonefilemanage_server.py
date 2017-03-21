@@ -515,9 +515,11 @@ def broadcast_valid_ops(current_block_id):
     ops = server.get_pooled_valid_ops(current_block_id)
     log.info("Get the valid ops %s under %s" % (ops, current_block_id))
     for op in ops:
-        name_action = op.split('_')
-        name = name_action[0]
-        action = name_action[1]
+        name_action_blockid = op.split('_')
+        name = name_action_blockid[0]
+        action = name_action_blockid[1]
+        blockid = name_action_blockid[2]
+        log.info('name: %s action: %s in block: %s' % (name, action, blockid))
         assert action is "REGISTER"
         method = VALID_OP_METHODS.get(action)
         method(name, wallets[0].privkey)
