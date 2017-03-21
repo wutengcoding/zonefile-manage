@@ -135,10 +135,10 @@ regtest = True
 """ % (TEST_RPC_PORT, TEST_CLIENT_RPC_PORT)
 
 VALID_OP_METHODS = {
-    "NAME_REGISTER": zonefilemanage_name_register,
-    "NAME_UPDATE": zonefilemanage_name_update,
-    "NAME_REVOKE": zonefilemanage_name_revoke,
-    "NAME_TRANSFER": zonefilemanage_name_transfer
+    "REGISTER": zonefilemanage_name_register,
+    "UPDATE": zonefilemanage_name_update,
+    "REVOKE": zonefilemanage_name_revoke,
+    "TRANSFER": zonefilemanage_name_transfer
 }
 
 class Pinger(threading.Thread):
@@ -518,7 +518,7 @@ def broadcast_valid_ops(current_block_id):
         name_action = op.split('_')
         name = name_action[0]
         action = name_action[1]
-        assert action is "NAME_REGISTER"
+        assert action is "REGISTER"
         method = VALID_OP_METHODS.get(action)
         method(name, wallets[0].privkey)
 
