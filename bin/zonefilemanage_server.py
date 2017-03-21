@@ -383,6 +383,8 @@ def bitcoin_regtest_next_block():
     opts = bitcoin_regtest_opts()
     bitcoind = bitcoin_regtest_connect(opts)
     current_block = bitcoind.getblockcount()
+    if type(current_block) == str:
+        current_block = int(current_block)
 
     broadcast_valid_ops(current_block)
 
