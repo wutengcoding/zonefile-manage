@@ -610,7 +610,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
             assert type(poll) is bool
         except Exception, e:
             log.exception(e)
-        item = name + '_' + action + '_' + block_id
+        item = name + '_' + action + '_' + str(block_id)
         if item in self.vote_count.keys():
             self.vote_count[item] += 1
         else:

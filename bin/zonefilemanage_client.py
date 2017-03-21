@@ -11,10 +11,10 @@ def vote_for_name(name, action, block_id, poll):
         vote_for_name_to_one(name, action, block_id, poll, h)
     return True
 
-def vote_for_name_to_one(name, action, poll, ip):
+def vote_for_name_to_one(name, action, block_id, poll, ip):
     log.info("%s vote for name %s to ip: %s" % (get_my_ip(), name, ip))
     s = xmlrpclib.ServerProxy('http://%s:%s' % (ip, RPC_SERVER_PORT))
-    s.rpc_vote_for_name_action(name, action, poll)
+    s.rpc_vote_for_name_action(name, action, block_id, poll)
     return True
 
 
