@@ -22,7 +22,7 @@ def build(name):
 
     """
 
-    readable_script = "NAME_REGISTER %s" % (status_name)
+    readable_script = "NAME_REGISTER %s" % (name)
     script = parse_op(readable_script)
     packaged_script = add_magic_bytes(script)
 
