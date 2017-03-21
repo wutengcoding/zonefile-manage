@@ -386,10 +386,10 @@ def bitcoin_regtest_next_block():
     if type(current_block) in [str, unicode]:
         current_block = int(current_block)
 
-    # broadcast_valid_ops(current_block)
+    broadcast_valid_ops(current_block)
 
     bitcoind.generate(1)
-    log.info("Next block (now at %s) type is %s" % (current_block + 1, current_block))
+    log.info("Next block (now at %s) type is %s" % (current_block + 1, type(current_block)))
 
     declare_block_owner(current_block + 1, get_my_ip())
 
