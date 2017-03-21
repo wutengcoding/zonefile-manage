@@ -638,10 +638,11 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         name_record = self.db.get_name(name)
         return name_record
 
-    def rpc_collect_vote(self, name_action):
+    def rpc_collect_vote(self, name, action):
         """
         Collect the vote result for a name
         """
+        name_action = name + action
         try:
             assert name_action in self.vote_poll.keys() and name_action in self.vote_count.keys(), "Collect for invalid name %s" % name_action
             return self.vote_poll[name_action] * 2 > self.vote_count[name_action]
