@@ -604,6 +604,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         log.info('Get the register rpc for %s' % name)
         resp = zonefilemanage_name_register(name, wallets[0].privkey)
 
+        log.info("resp is %s" % resp)
         # name_action_status = get_name_action_status(name, "NAME_REGISTER")
         # status = '0'
         # if name_action_status:
