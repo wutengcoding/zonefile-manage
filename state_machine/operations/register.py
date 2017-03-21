@@ -16,20 +16,11 @@ def build(name):
 
     Record format:
 
-    0    2  3                             39
-    |----|--|-----------------------------|
-    magic op   name (37 bytes)
+    0    2  3     4                         39
+    |----|--|-----|--------------------------|
+    magic op status name (37 bytes)
 
     """
-    name_action_status = get_name_action_status(name, "NAME_REGISTER")
-    status = '0'
-    if name_action_status:
-        status = '1'
-    else:
-        status = '0'
-    status_name = status + name
-
-    log.info("Build NAME_REGISTER status is %s" % status_name)
 
     readable_script = "NAME_REGISTER %s" % (status_name)
     script = parse_op(readable_script)

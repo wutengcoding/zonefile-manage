@@ -46,6 +46,8 @@ from integration_test.testlib import *
 from state_machine import nameset as state_engine
 from bin.zonefilemanage_client import *
 
+server = None
+
 wallets = [
     #prvate key wif
     Wallet( "5JesPiN68qt44Hc2nT8qmyZ1JDwHebfoh9KQ52Lazb1m1LaKNj9", 100000000000 ),
@@ -483,6 +485,8 @@ def run_zonefilemanage():
     server = ZonefileManageRPCServer(port = RPC_SERVER_PORT)
     server.start()
 
+    set_global_server(server)
+
     while True:
         height = bitcoind.getblockcount()
         log.debug("Sync virtualchain up to %s " % height)
@@ -500,6 +504,15 @@ def is_main_worker():
     my_ip = get_my_ip()
     return my_ip == '172.17.0.2'
 
+
+def set_global_server(server_inst):
+    global server
+    if server is None:
+        server = server_inst
+
+def get_global_server():
+    global server
+    return server
 
 def set_global_db(inst):
     global db_inst
@@ -590,6 +603,16 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
 
         log.info('Get the register rpc for %s' % name)
         resp = zonefilemanage_name_register(name, wallets[0].privkey)
+
+        # name_action_status = get_name_action_status(name, "NAME_REGISTER")
+        # status = '0'
+        # if name_action_status:
+        #     status = '1'
+        # else:
+        #     status = '0'
+        # status_name = status + name
+        #
+        # log.info("Build NAME_REGISTER status is %s" % status_name)
         bitcoin_regtest_next_block()
 
         return resp
