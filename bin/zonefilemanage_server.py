@@ -511,6 +511,7 @@ def run_zonefilemanage():
 def broadcast_valid_ops(current_block_id):
     server = get_global_server()
     ops = server.get_pooled_valid_ops(current_block_id)
+    log.info("Get the valid ops %s under %s" % (ops, current_block_id))
     for op in ops:
         name_action = op.split('_')
         name = name_action[0]
