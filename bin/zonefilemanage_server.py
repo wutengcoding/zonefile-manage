@@ -7,10 +7,8 @@ import shutil
 import socket
 import time
 import threading
-import traceback
 import commands
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
-from SocketServer import ThreadingMixIn
 
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
 os.environ['ZONEFILEMANAGE_TEST'] = '1'
@@ -492,7 +490,7 @@ class SimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     rpc_path = ('/RPC2',)
 
 
-class ZonefileManageRPC(SimpleXMLRPCServer, ThreadingMixIn):
+class ZonefileManageRPC(SimpleXMLRPCServer):
     """
     ZonefileManage RPC server
     """

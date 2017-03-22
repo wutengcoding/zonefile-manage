@@ -16,11 +16,8 @@ proxy_pool = {}
 def vote_for_name_to_one(name, action, block_id, poll, ip):
     log.info("%s vote for name %s to ip: %s, the poll is %s in block: %s" % (get_my_ip(), name, ip, poll, block_id))
 
-    # s = get_proxy(ip)
-    url = 'http://%s:%s' % (ip, RPC_SERVER_PORT)
-    s = xmlrpclib.ServerProxy(url)
+    s = get_proxy(ip)
     s.rpc_vote_for_name_action(name, action, block_id, poll)
-    s.close
     return True
 
 
@@ -38,11 +35,8 @@ def declare_block_owner(block_id, owner_ip):
     hosts = get_other_ips()
     log.info("other hosts is %s" % hosts)
     for h in hosts:
-        # s = get_proxy(h)
-        url = 'http://%s:%s' % (ip, RPC_SERVER_PORT)
-        s = xmlrpclib.ServerProxy(url)
+        s = get_proxy(h)
         s.rpc_declare_block_owner(block_id, owner_ip)
-        s.close
     return True
 
 
