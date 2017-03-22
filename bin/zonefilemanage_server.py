@@ -601,8 +601,8 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
             return False
 
         num = random.randint(1, 10)
-        if num <= 8:
-            self.vote_count[name_action_blockid] += 1
+
+        self.vote_count[name_action_blockid] += 1
 
         if is_main_worker():
             return False
