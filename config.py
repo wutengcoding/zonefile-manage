@@ -348,6 +348,10 @@ def set_global_db(inst):
     if db_inst is None:
         db_inst = inst
 
+def is_main_worker():
+    my_ip = get_my_ip()
+    return my_ip == '172.17.0.2'
+
 
 if __name__ == '__main__':
     ips = get_p2p_hosts\

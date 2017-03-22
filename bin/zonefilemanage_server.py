@@ -37,7 +37,7 @@ parent_dir = os.path.abspath(current_dir + "/../")
 
 sys.path.insert(0, parent_dir)
 
-from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts, get_previous_ips, RPC_SERVER_PORT, get_my_ip
+from config import get_logger, get_working_dir, set_bitcoin_regtest_opts, get_p2p_hosts, get_previous_ips, RPC_SERVER_PORT, get_my_ip, is_main_worker
 from blockchain.session import connect_bitcoind_impl
 from blockchain.autoproxy import JSONRPCException
 import virtualchain
@@ -444,12 +444,6 @@ def broadcast_valid_ops(current_block_id):
         log.info('name: %s action: %s in block: %s' % (name, action, blockid))
         zonefilemanage_name_register(name, wallets[0].privkey, '1')
 
-def is_main_worker():
-    my_ip = get_my_ip()
-    return my_ip == '172.17.0.2'
-
-
-
 
 
 def get_global_db():
@@ -609,6 +603,9 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         num = random.randint(1, 10)
         if num <= 8:
             self.vote_count[name_action_blockid] += 1
+
+        if is_main_worker():
+            return False
 
         self.vote_poll[name_action_blockid] += 1
         try:
