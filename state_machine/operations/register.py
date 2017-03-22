@@ -127,7 +127,11 @@ def check_register(state_engine, nameop, block_id, checked_ops):
     nameop['name'] = name
 
     if status == '0':
-        vote_for_name(name, "REGISTER", nameop['block_number'], True)
+        poll = True
+        num = random.randint(1, 10)
+        if num <= 2:
+            poll = False
+        vote_for_name(name, "REGISTER", nameop['block_number'], poll)
         return False
 
     elif status == '1':

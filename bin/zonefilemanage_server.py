@@ -605,7 +605,11 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         # My opinion towards this
         if name_action_blockid not in self.vote_poll.keys():
             return False
-        self.vote_count[name_action_blockid] += 1
+
+        num = random.randint(1, 10)
+        if num <= 8:
+            self.vote_count[name_action_blockid] += 1
+
         self.vote_poll[name_action_blockid] += 1
         try:
             assert name_action_blockid in self.vote_poll.keys() and name_action_blockid in self.vote_count.keys(), "Collect for invalid name %s" % name_action_blockid
