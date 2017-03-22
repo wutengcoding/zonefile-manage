@@ -26,6 +26,8 @@ if os.environ.get("ZONEFILEMANAGE_TEST", None) == "1":
 
 running = False
 
+voting_strategy = 0
+
 server = None
 
 VOTEPORT = 16288
@@ -295,7 +297,7 @@ def is_running():
 
 
 def get_p2p_hosts():
-    ips = "172.17.0.2-4"
+    ips = "172.17.0.2-11"
     ip_parts = ips.split('.')
     assert len(ip_parts) == 4, "ips %s is not correct" % ips
     ip_range = ip_parts[3].split('-')
