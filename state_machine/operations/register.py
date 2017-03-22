@@ -135,7 +135,7 @@ def check_register(state_engine, nameop, block_id, checked_ops):
         server = get_global_server()
         res = server.collect_vote_poll(name, "REGISTER", nameop['block_number'] - 1)
         log.info("Get name: %s action status is %s" % (name, res))
-        server.clear_old_pooled_ops(nameop['block_number'] - 1)
+        # server.clear_old_pooled_ops(nameop['block_number'] - 1)
 
     if state_engine.is_name_registered(name):
         return False
