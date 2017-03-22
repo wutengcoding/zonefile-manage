@@ -13,7 +13,7 @@ def generate_name_set():
     name_list = []
     for i in range(0, 30):
         name_list.append('bar' + str(i))
-    return namelist
+    return name_list
 
 namelist = generate_name_set()
 
