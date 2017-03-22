@@ -40,7 +40,7 @@ def declare_block_owner(block_id, owner_ip):
     log.info("other hosts is %s" % hosts)
     for h in hosts:
         # s = get_proxy(h)
-        url = 'http://%s:%s' % (ip, RPC_SERVER_PORT)
+        url = 'http://%s:%s' % (h, RPC_SERVER_PORT)
         s = xmlrpclib.ServerProxy(url)
         s.rpc_declare_block_owner(block_id, owner_ip)
         s('close')
