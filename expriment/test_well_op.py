@@ -13,14 +13,17 @@ def generate_name_set():
     name_list = []
     for i in range(0, 100):
         name_list.append('bar' + str(i))
+    return namelist
 
 namelist = generate_name_set()
 
 # do register name
 for name in namelist:
     node_index = random.randint(0, 2)
-    proxy = proxy[node_index]
-    proxy.rpc_register_name(name)
+    assert node_index in [0, 1, 2]
+    proxy_node = proxy[node_index]
+    res = proxy_node.rpc_register_name(name)
+    print res
     time.sleep(2)
 # flush
 node2.rpc_register_name('flush')
@@ -28,6 +31,7 @@ node2.rpc_register_name('flush')
 # do count successful name register
 for name in namelist:
     result = node2.rpc_get_name(name)
+    print result
     if result is not None:
         cnt += 1
 
