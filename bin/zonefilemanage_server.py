@@ -420,7 +420,7 @@ def run_zonefilemanage():
 
     while True:
         height = bitcoind.getblockcount()
-        log.debug("Sync virtualchain up to %s " % height)
+        log.info("Sync virtualchain up to %s " % height)
         virtualchain.sync_virtualchain(bitcoin_regtest_opts(), height, db)
 
         # wait for the next block
