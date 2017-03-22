@@ -131,7 +131,7 @@ def check_register(state_engine, nameop, block_id, checked_ops):
         num = random.randint(1, 10)
         if num <= 2:
             poll = False
-        vote_for_name(name, "REGISTER", nameop['block_number'], True)
+        vote_for_name(name, "REGISTER", nameop['block_number'], poll)
         return False
 
     elif status == '1':
