@@ -515,9 +515,6 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         # The owner of the block
         self.block_owner = {}
 
-    def clear_pool(self):
-        self.vote_count.clear()
-        self.vote_poll.clear()
 
     def rpc_vote_for_name_action(self, name, action, block_id, poll):
         try:

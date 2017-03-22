@@ -10,7 +10,7 @@ if os.environ.get("ZONEFILEMANAGE_DEBUG") == "1":
 
 REINDEX_FREQUENCY = 300 # seconds
 if os.environ.get("ZONEFILEMANAGE_TEST") == "1":
-    REINDEX_FREQUENCY = 10
+    REINDEX_FREQUENCY = 1
 
 FIRST_BLOCK_MAINNET = 373601
 
