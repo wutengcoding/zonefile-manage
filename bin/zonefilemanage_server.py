@@ -10,6 +10,7 @@ import threading
 import traceback
 import commands
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
+from SocketServer import ThreadingMixIn
 
 os.environ['ZONEFILEMANAGE_DEBUG'] = '1'
 os.environ['ZONEFILEMANAGE_TEST'] = '1'
@@ -31,7 +32,7 @@ if os.environ.get("ZONEFILEMANAGE_STORAGE", None) is not None:
     ZONEFILEMANAGE_STORAGE_DRIVERS = os.environ.get("ZONEFILEMANAGE_STORAGE")
 
 BITCOIN_DIR = "/tmp/bitcoin-regtest"
-REINDEX_FREQUENCY = 5
+REINDEX_FREQUENCY = 10
 # Hack around the absolute path
 current_dir = os.path.abspath(os.path.dirname(__file__))
 parent_dir = os.path.abspath(current_dir + "/../")
@@ -52,93 +53,14 @@ wallets = [
     Wallet( "5JesPiN68qt44Hc2nT8qmyZ1JDwHebfoh9KQ52Lazb1m1LaKNj9", 100000000000 ),
     Wallet( "5KHqsiU9qa77frZb6hQy9ocV7Sus9RWJcQGYYBJJBb2Efj1o77e", 100000000000 ),
     Wallet( "5Kg5kJbQHvk1B64rJniEmgbD83FpZpbw2RjdAZEzTefs9ihN3Bz", 100000000000 ),
-    Wallet( "5JuVsoS9NauksSkqEjbUZxWwgGDQbMwPsEfoRBSpLpgDX1RtLX7", 5500 ),
-    Wallet( "5KEpiSRr1BrT8vRD7LKGCEmudokTh1iMHbiThMQpLdwBwhDJB1T", 5500 )
+    Wallet( "5JuVsoS9NauksSkqEjbUZxWwgGDQbMwPsEfoRBSpLpgDX1RtLX7", 100000000000 ),
+    Wallet( "5KEpiSRr1BrT8vRD7LKGCEmudokTh1iMHbiThMQpLdwBwhDJB1T", 100000000000 )
 ]
 
 db_inst = None
 
 log = get_logger("ZONEFILEMANAGE")
 
-DEFAULT_SERVER_INI_TEMPLATE = """
-[bitcoind]
-passwd = blockstacksystem
-server = localhost
-port = 18332
-p2p_port = 18444
-use_https = False
-user = blockstack
-regtest = True
-spv_path = @CLIENT_BLOCKCHAIN_HEADERS@
-
-[blockstack]
-server_version = 0.14.0
-rpc_port = %s
-backup_frequency = 3
-backup_max_age = 30
-blockchain_proxy = True
-serve_zonefiles = True
-serve_profiles = True
-zonefiles = @ZONEFILES@
-analytics_key = abcdef0123456789
-zonefile_storage_drivers = disk
-profile_storage_drivers = disk
-atlas = True
-atlas_seeds =
-atlas_blacklist =
-atlas_hostname = localhost
-""" % TEST_RPC_PORT
-
-DEFAULT_CLIENT_INI_TEMPLATE = """
-[blockstack-client]
-client_version = 0.14.0
-server = localhost
-port = %s
-metadata = @CLIENT_METADATA@
-storage_drivers = @CLIENT_STORAGE_DRIVERS@
-storage_drivers_required_write = disk,blockstack-server
-advanced_mode = true
-api_endpoint_port = %s
-rpc_token = a653b93e696a998f85f8fd2b241ff4dfcb5dd978fe1da26c413a4c2abf90321b
-poll_interval = 1
-queue_path = @CLIENT_QUEUE_PATH@
-rpc_detach = True
-blockchain_reader = bitcoind_utxo
-blockchain_writer = bitcoind_utxo
-anonymous_statistics = False
-blockchain_headers = @CLIENT_BLOCKCHAIN_HEADERS@
-
-[blockchain-reader]
-utxo_provider = bitcoind_utxo
-rpc_username = blockstack
-rpc_password = blockstacksystem
-server = localhost
-port = 18332
-use_https = False
-
-[blockchain-writer]
-utxo_provider = bitcoind_utxo
-rpc_username = blockstack
-rpc_password = blockstacksystem
-server = localhost
-port = 18332
-use_https = False
-
-[bitcoind]
-passwd = blockstacksystem
-server = localhost
-port = 18332
-use_https = False
-user = blockstack
-regtest = True
-""" % (TEST_RPC_PORT, TEST_CLIENT_RPC_PORT)
-
-VALID_OP_METHODS = {
-    "REGISTER": zonefilemanage_name_register,
-    "UPDATE": zonefilemanage_name_update,
-    "REVOKE": zonefilemanage_name_revoke,
-    "TRANSFER": zonefilemanage_name_transfer
-}
 
 class Pinger(threading.Thread):
     def __init__(self):
@@ -571,7 +493,7 @@ class SimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     rpc_path = ('/RPC2',)
 
 
-class ZonefileManageRPC(SimpleXMLRPCServer):
+class ZonefileManageRPC(SimpleXMLRPCServer, ThreadingMixIn):
     """
     ZonefileManage RPC server
     """
