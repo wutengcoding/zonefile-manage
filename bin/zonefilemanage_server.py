@@ -484,8 +484,8 @@ class ZonefileManageRPCServer(threading.Thread, object):
         return self.rpc_server.get_valid_ops(current_block_id)
 
 
-    def clear_old_pooled_ops(self, current_block_id):
-        return self.rpc_server.clear_old_ops(current_block_id)
+    def clear_old_pooled_ops(self, name, action, blockid):
+        return self.rpc_server.clear_old_ops(name, action, blockid)
 
 
 class SimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
@@ -541,21 +541,13 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
 
             if self.rpc_collect_vote(name_action_blockid):
                 ops.append(name_action_blockid)
-                del self.vote_poll[name_action_blockid]
 
         return ops
 
-    def clear_old_ops(self, current_block_id):
-        name_action_list = self.vote_poll.keys()
-
-        for name_action_blockid in name_action_list:
-            parts = name_action_blockid.split("_")
-            block_id = parts[-1]
-            if int(block_id) < current_block_id - 1:
-                log.info("Clearing the old blockid for %s" % (block_id))
-                del self.vote_poll[name_action_blockid]
-
-        return True
+    def clear_old_ops(self, name, action, blockid):
+        to_delete_key = "{}_{}_{}".format(name, action, blockid)
+        if to_delete_key in self.vote_poll.keys():
+            del self.vote_poll[to_delete_key]
 
     def rpc_register_name(self, name):
         """
