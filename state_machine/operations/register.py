@@ -133,14 +133,14 @@ def check_register(state_engine, nameop, block_id, checked_ops):
     elif status == '1':
         log.info("The check method goes here for name: %s and status: %s" % (name, status))
 
-        if config.voting_strategy == 0:
+        if voting_strategy == 0:
             server = get_global_server()
             vote_res = server.collect_vote_poll(name, "REGISTER", nameop['block_number'] - 1)
             log.info("Get name: %s action status is %s" % (name, vote_res))
             if not vote_res:
                 return False
 
-        elif config.voting_strategy == 1:
+        elif voting_strategy == 1:
             # Trust unconditionly
             pass
         else:
