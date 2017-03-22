@@ -295,7 +295,7 @@ def is_running():
 
 
 def get_p2p_hosts():
-    ips = "172.17.0.2-4"
+    ips = "172.17.0.2-21"
     ip_parts = ips.split('.')
     assert len(ip_parts) == 4, "ips %s is not correct" % ips
     ip_range = ip_parts[3].split('-')
@@ -348,6 +348,7 @@ def set_global_db(inst):
 
 
 if __name__ == '__main__':
-    ips = get_previous_ips()
+    ips = get_p2p_hosts\
+        ()
     print ips
 
