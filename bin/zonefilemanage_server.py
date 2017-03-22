@@ -1,3 +1,4 @@
+import SocketServer
 import os
 import logging
 import importlib
@@ -413,8 +414,7 @@ def run_zonefilemanage():
     server = ZonefileManageRPCServer(port = RPC_SERVER_PORT)
     server.start()
 
-    server1 = ZonefileManageRPCServer(port = TEST_CLIENT_RPC_PORT)
-    server1.start()
+    # startVoteServer()
 
     set_global_server(server)
 
@@ -430,6 +430,7 @@ def run_zonefilemanage():
                 time.sleep(1)
             except:
                 break
+
 
 def broadcast_valid_ops(current_block_id):
     server = get_global_server()

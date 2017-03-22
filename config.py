@@ -28,6 +28,8 @@ running = False
 
 server = None
 
+VOTEPORT = 16288
+
 GENESIS_SNAPSHOT = {
     str(FIRST_BLOCK_MAINNET-4): "17ac43c1d8549c3181b200f1bf97eb7d",
     str(FIRST_BLOCK_MAINNET-3): "17ac43c1d8549c3181b200f1bf97eb7d",

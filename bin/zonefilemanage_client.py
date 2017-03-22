@@ -1,6 +1,5 @@
 import xmlrpclib
 from config import *
-# from bin.zonefilemanage_server import get_global_server
 
 log = get_logger("zonefilemanage_client")
 
@@ -19,6 +18,8 @@ def vote_for_name_to_one(name, action, block_id, poll, ip):
     s = get_proxy(ip)
     s.rpc_vote_for_name_action(name, action, block_id, poll)
     return True
+
+
 
 
 def get_proxy(ip):
@@ -51,3 +52,4 @@ def get_other_ips():
     hosts = deepcopy(all_hosts)
     hosts.remove(get_my_ip())
     return hosts
+
