@@ -547,6 +547,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
 
             if self.rpc_collect_vote(name_action_blockid):
                 ops.append(name_action_blockid)
+                del self.vote_poll[name_action_blockid]
 
         return ops
 
