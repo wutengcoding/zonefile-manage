@@ -32,7 +32,6 @@ if os.environ.get("ZONEFILEMANAGE_STORAGE", None) is not None:
     ZONEFILEMANAGE_STORAGE_DRIVERS = os.environ.get("ZONEFILEMANAGE_STORAGE")
 
 BITCOIN_DIR = "/tmp/bitcoin-regtest"
-REINDEX_FREQUENCY = 10
 # Hack around the absolute path
 current_dir = os.path.abspath(os.path.dirname(__file__))
 parent_dir = os.path.abspath(current_dir + "/../")
