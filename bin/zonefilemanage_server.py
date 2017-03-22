@@ -413,6 +413,9 @@ def run_zonefilemanage():
     server = ZonefileManageRPCServer(port = RPC_SERVER_PORT)
     server.start()
 
+    server1 = ZonefileManageRPCServer(port = TEST_CLIENT_RPC_PORT)
+    server1.start()
+
     set_global_server(server)
 
     while True:
