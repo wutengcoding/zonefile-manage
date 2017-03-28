@@ -448,7 +448,7 @@ def broadcast_valid_ops(current_block_id):
                 if clear_flag:
                     nameset_cache.remove(name)
             else:
-                pass
+                send_candidate_ops(current_block_id)
     else:
         send_candidate_ops(current_block_id)
 
