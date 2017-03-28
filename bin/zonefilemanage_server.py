@@ -443,6 +443,7 @@ def broadcast_valid_ops(current_block_id):
         for name in temp_nameset:
             # For true register
             if not is_main_worker():
+                log.info("Send out the cached name*************** %s " % name)
                 send_candidate_ops(current_block_id, name)
                 nameset_cache.remove(name)
             else:
