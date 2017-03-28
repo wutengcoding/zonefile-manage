@@ -628,10 +628,11 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         if name_action_blockid not in self.vote_poll.keys():
             return False
 
-        num = random.randint(1, 10)
-        if num > 1:
-            self.vote_poll[name_action_blockid] += 1
+        # num = random.randint(1, 10)
+        # if num > 1:
+        #     self.vote_poll[name_action_blockid] += 1
 
+        self.vote_poll[name_action_blockid] += 1
 
         # For true register
 
