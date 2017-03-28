@@ -532,6 +532,11 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
                 self.vote_poll[item] += 1
             else:
                 self.vote_poll[item] = 1
+        else:
+            if name in self.vote_poll.keys():
+                self.vote_poll[item] += 0
+            else:
+                self.vote_poll[item] = 0
 
     def get_valid_ops(self, current_block_id):
         ops = []
