@@ -449,6 +449,7 @@ def broadcast_valid_ops(current_block_id):
                     nameset_cache.remove(name)
             else:
                 send_candidate_ops(current_block_id)
+                nameset_cache.remove(name)
     else:
         send_candidate_ops(current_block_id)
 
