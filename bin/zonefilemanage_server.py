@@ -599,7 +599,9 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         # if num > 1:
         #     self.vote_count[name_action_blockid] += 1
 
-        self.vote_count[name_action_blockid] += 1
+        # For false register
+        # self.vote_count[name_action_blockid] += 1
+
         # For true register
         # if is_main_worker():
         #     return False
