@@ -475,7 +475,8 @@ class ZonefileManageRPCServer(threading.Thread, object):
             self.rpc_server.shutdown()
 
     def collect_vote_poll(self, name, action, blockid):
-        return self.rpc_server.rpc_collect_vote("{}_{}_{}".format(name, action, blockid))
+        # return self.rpc_server.rpc_collect_vote("{}_{}_{}".format(name, action, blockid))
+        return self.rpc_server.rpc_collect_vote("{}_{}".format(name, action))
 
     def get_block_owner(self, block_id):
         return self.get_block_owner(block_id)
@@ -519,7 +520,8 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
             assert type(poll) is bool
         except Exception, e:
             log.exception(e)
-        item = name + '_' + action + '_' + str(block_id)
+        # item = name + '_' + action + '_' + str(block_id)
+        item = name + '_' + action
         if item in self.vote_count.keys():
             self.vote_count[item] += 1
         else:
@@ -545,7 +547,8 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         return ops
 
     def clear_old_ops(self, name, action, blockid):
-        to_delete_key = "{}_{}_{}".format(name, action, blockid)
+        # to_delete_key = "{}_{}_{}".format(name, action, blockid)
+        to_delete_key = "{}_{}".format(name, action)
         if to_delete_key in self.vote_poll.keys():
             del self.vote_poll[to_delete_key]
 
