@@ -444,8 +444,9 @@ def broadcast_valid_ops(current_block_id):
             # For true register
             if not is_main_worker():
                 log.info("Send out the cached name*************** %s " % name)
-                send_candidate_ops(current_block_id, name)
-                nameset_cache.remove(name)
+                clear_flag = send_candidate_ops(current_block_id, name)
+                if clear_flag:
+                    nameset_cache.remove(name)
             else:
                 pass
     else:
@@ -456,6 +457,7 @@ def send_candidate_ops(current_block_id, candidate_name=None):
     server = get_global_server()
     ops = server.get_pooled_valid_ops(current_block_id)
     log.info("Get the valid ops %s under %s" % (ops, current_block_id))
+    clear_cache_flag = False
     for op in ops:
         name_action_blockid = op.split('_')
         name = name_action_blockid[0]
@@ -466,7 +468,9 @@ def send_candidate_ops(current_block_id, candidate_name=None):
 
         log.info('name: %s action: %s' % (name, action))
         zonefilemanage_name_register(name, wallets[0].privkey, '1')
+        clear_cache_flag = True
 
+    return clear_cache_flag
 
 def get_global_db():
     global db_inst
