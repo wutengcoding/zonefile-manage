@@ -440,8 +440,8 @@ def broadcast_valid_ops(current_block_id):
         name_action_blockid = op.split('_')
         name = name_action_blockid[0]
         action = name_action_blockid[1]
-        blockid = name_action_blockid[2]
-        log.info('name: %s action: %s in block: %s' % (name, action, blockid))
+        # blockid = name_action_blockid[2]
+        log.info('name: %s action: %s' % (name, action))
         zonefilemanage_name_register(name, wallets[0].privkey, '1')
 
 
