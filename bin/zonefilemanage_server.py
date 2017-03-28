@@ -584,6 +584,8 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         """
 
         log.info('Get the register rpc for %s' % name)
+
+        nameset_cache.append(name)
         resp = zonefilemanage_name_register(name, wallets[0].privkey)
 
         log.info("resp is %s" % resp)
