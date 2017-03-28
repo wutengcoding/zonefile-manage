@@ -27,6 +27,7 @@ for name in namelist:
     time.sleep(2)
 # flush
 node2.rpc_register_name('flush')
+time.sleep(2)
 
 # do count successful name register
 for name in namelist:
