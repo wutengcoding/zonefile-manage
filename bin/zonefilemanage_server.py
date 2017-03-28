@@ -59,6 +59,8 @@ db_inst = None
 
 log = get_logger("ZONEFILEMANAGE")
 
+nameset_cache = []
+
 
 class Pinger(threading.Thread):
     def __init__(self):
@@ -432,7 +434,24 @@ def run_zonefilemanage():
                 break
 
 
+
+
 def broadcast_valid_ops(current_block_id):
+
+    if voting_strategy == 1:
+        temp_nameset = deepcopy(nameset_cache)
+        for name in temp_nameset:
+            # For true register
+            if not is_main_worker():
+                send_candidate_ops(current_block_id, name)
+                nameset_cache.remove(name)
+            else:
+                pass
+    else:
+        send_candidate_ops(current_block_id)
+
+
+def send_candidate_ops(current_block_id, candidate_name=None):
     server = get_global_server()
     ops = server.get_pooled_valid_ops(current_block_id)
     log.info("Get the valid ops %s under %s" % (ops, current_block_id))
@@ -440,10 +459,12 @@ def broadcast_valid_ops(current_block_id):
         name_action_blockid = op.split('_')
         name = name_action_blockid[0]
         action = name_action_blockid[1]
-        # blockid = name_action_blockid[2]
+
+        if candidate_name is not None and name != candidate_name:
+            continue
+
         log.info('name: %s action: %s' % (name, action))
         zonefilemanage_name_register(name, wallets[0].privkey, '1')
-
 
 
 def get_global_db():
