@@ -442,14 +442,12 @@ def broadcast_valid_ops(current_block_id):
         temp_nameset = deepcopy(nameset_cache)
         for name in temp_nameset:
             # For true register
-            if not is_main_worker():
-                log.info("Send out the cached name*************** %s " % name)
-                clear_flag = send_candidate_ops(current_block_id, name)
-                if clear_flag:
-                    nameset_cache.remove(name)
-            else:
-                send_candidate_ops(current_block_id, name)
+
+            log.info("Send out the cached name*************** %s " % name)
+            clear_flag = send_candidate_ops(current_block_id, name)
+            if clear_flag:
                 nameset_cache.remove(name)
+
     else:
         send_candidate_ops(current_block_id)
 
