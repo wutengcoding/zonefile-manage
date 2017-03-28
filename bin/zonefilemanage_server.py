@@ -632,16 +632,16 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
         # if num > 1:
         #     self.vote_poll[name_action_blockid] += 1
 
-        self.vote_poll[name_action_blockid] += 1
+        # self.vote_poll[name_action_blockid] += 1
 
         # For true register
 
-        if is_main_worker():
-            return False
+        # if is_main_worker():
+        #     return False
 
         # For false register
-        # if is_main_worker():
-        #     return True
+        if is_main_worker():
+            return True
 
         self.vote_count[name_action_blockid] += 1
         try:
