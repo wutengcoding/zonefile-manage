@@ -11,7 +11,7 @@ proxy = [node1, node2, node3]
 
 def generate_name_set():
     name_list = []
-    for i in range(0, 30):
+    for i in range(0, 100):
         name_list.append('bar' + str(i))
     return name_list
 
