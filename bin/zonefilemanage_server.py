@@ -628,7 +628,7 @@ class ZonefileManageRPC(SimpleXMLRPCServer):
             return False
 
         num = random.randint(1, 10)
-        if num > 2:
+        if num > 1:
             self.vote_poll[name_action_blockid] += 1
 
 
