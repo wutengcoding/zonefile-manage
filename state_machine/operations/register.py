@@ -128,11 +128,13 @@ def check_register(state_engine, nameop, block_id, checked_ops):
 
     if status == '0':
         poll = False
+
         num = random.randint(1, 10)
-        if num > 1:
+        if num <= 1:
             poll = True
+
         if is_main_worker():
-            poll = False
+            poll = True
         vote_for_name(name, "REGISTER", nameop['block_number'], poll)
         return False
 
