@@ -26,7 +26,7 @@ if os.environ.get("ZONEFILEMANAGE_TEST", None) == "1":
 
 running = False
 
-voting_strategy = 1
+voting_strategy = 0
 
 server = None
 
